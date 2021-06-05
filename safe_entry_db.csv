@@ -20,3 +20,5 @@ NRIC,NAME,CHECKIN,CHECKOUT,LOCATION,RMI
 "NRIC","name","Sun Jun 06 01:30:21 SGT 2021","","location","rmi://localhost:1099/database"
 "NRIC","name","Sun Jun 06 01:30:52 SGT 2021","","location","rmi://localhost:1099/database"
 "NRIC","name","Sun Jun 06 01:32:06 SGT 2021","","location","rmi://localhost:1099/database"
+"NRIC","name","Sun Jun 06 01:59:07 SGT 2021","","location","rmi://localhost:1099/database"
+"NRIC","name","Sun Jun 06 02:04:53 SGT 2021","","location","rmi://localhost:1099/database"

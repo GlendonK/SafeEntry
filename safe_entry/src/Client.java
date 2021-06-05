@@ -15,7 +15,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject {
             String rmi = "rmi://"+host+":"+port+"/database";
             Database database = (Database)Naming.lookup(rmi);
             database.checkIn("NRIC", "name", "location", rmi);
-            System.out.println("complete");
+            System.out.println("completed");
             System.exit(0);
             return;
         } catch (MalformedURLException urle) {
