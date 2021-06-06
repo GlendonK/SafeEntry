@@ -1,9 +1,16 @@
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import java.rmi.RemoteException;
+
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
+
 import java.util.Date;
+import java.util.List;
 
 public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject implements Database {
     public SafeEntryDatabase() throws java.rmi.RemoteException {
@@ -22,7 +29,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     System.out.println("In Thread");
-                    CSVWriter writer = new CSVWriter(new FileWriter("safe_entry_db.csv", true));
+                    CSVWriter writer = new CSVWriter(new FileWriter("C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv", true));
 
                     writer.writeNext(line1);
                     writer.close();
@@ -38,17 +45,90 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
         });
         thread.start();
-        try {
-            thread.join(1000);;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return;
 
     }
 
     @Override
-    public void checkOut() {
+    public void checkOut(String NRIC, String name, String location, String rmi) {
+        return;
+
+    }
+
+    @Override
+    public void read() throws RemoteException {
+        final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileReader fileReader = new FileReader(csv_path);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).withSkipLines(1).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    for (String[] row : allData) {
+
+                        System.out.println(
+                                row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5] + ", " + row[6]);
+
+                    }
+
+                    csvReader.close();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+
+        });
+        thread.start();
+
+        return;
+
+    }
+
+    @Override
+    public void update(String location) throws RemoteException {
+        final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileReader fileReader = new FileReader(csv_path);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).withSkipLines(1).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    for (String[] row : allData) {
+
+                        System.out.println(
+                                row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5] + ", " + row[6]);
+
+                    }
+
+                    csvReader.close();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+
+        });
+        thread.start();
+
+        return;
+
+    }
+
+    @Override
+    public void delete() throws RemoteException {
         return;
 
     }

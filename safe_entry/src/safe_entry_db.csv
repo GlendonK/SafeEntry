@@ -1,4 +1,5 @@
-"NRIC","name","Sun Jun 06 02:17:41 SGT 2021","","location","rmi://localhost:1099/database"
-"NRIC","name","Sun Jun 06 02:17:47 SGT 2021","","location","rmi://localhost:1099/database"
-"NRIC","name","Sun Jun 06 02:18:35 SGT 2021","","location","rmi://localhost:1099/database"
-"NRIC","name","Sun Jun 06 02:21:08 SGT 2021","","location","rmi://localhost:1099/database"
+NRIC,Name,check_in_time,check_out_time,location,is_covid,client_rmi_url
+NRIC,name,Sun Jun 06 02:17:47 SGT 2021,,location,0,rmi://localhost:1099/database
+NRIC,name,Sun Jun 06 02:18:35 SGT 2021,,location,0,rmi://localhost:1099/database
+NRIC,name,Sun Jun 06 02:21:08 SGT 2021,,location,0,rmi://localhost:1099/database
+NRIC,name,Sun Jun 06 21:55:02 SGT 2021,,location,0,rmi://localhost:1099/database

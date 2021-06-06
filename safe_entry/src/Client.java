@@ -14,7 +14,9 @@ public class Client extends java.rmi.server.UnicastRemoteObject {
         try {
             String rmi = "rmi://"+host+":"+port+"/database";
             Database database = (Database)Naming.lookup(rmi);
-            database.checkIn("NRIC", "name", "location", rmi);
+            //database.checkIn("NRIC", "name", "location", rmi);
+            database.read();
+
             System.out.println("completed");
             System.exit(0);
             return;
