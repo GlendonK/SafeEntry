@@ -1,5 +1,4 @@
-NRIC,Name,check_in_time,check_out_time,location,is_covid,client_rmi_url
-NRIC,name,Sun Jun 06 02:17:47 SGT 2021,,location,0,rmi://localhost:1099/database
-NRIC,name,Sun Jun 06 02:18:35 SGT 2021,,location,0,rmi://localhost:1099/database
-NRIC,name,Sun Jun 06 02:21:08 SGT 2021,,location,0,rmi://localhost:1099/database
-NRIC,name,Sun Jun 06 21:55:02 SGT 2021,,location,0,rmi://localhost:1099/database
+"S1234567A","Lim","2021-06-07T00:52:45.658541800","2021-06-07T00:52:53.964707300","nyp","infected","rmi://localhost:1099/database"
+"S1234567A","Lim","2021-06-07T00:52:48.539022500","2021-06-07T00:52:53.964707300","nyp","infected","rmi://localhost:1099/database"
+"S1234567A","Lim","2021-06-07T00:52:52.034223","2021-06-07T00:52:53.964707300","nyp","infected","rmi://localhost:1099/database"
+"S1234567B","Tan","2021-06-07T00:52:53.964707300","2021-06-07T02:24:31.041466900","nyp","infected","rmi://localhost:1099/database"

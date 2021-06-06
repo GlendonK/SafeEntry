@@ -7,15 +7,18 @@ import java.rmi.RemoteException;
 public class Client extends java.rmi.server.UnicastRemoteObject {
 
     static int port = 1099;
-    static String host ="localhost";
+    static String host = "localhost";
 
     public Client() throws RemoteException {
-        //super();
+        // super();
         try {
-            String rmi = "rmi://"+host+":"+port+"/database";
-            Database database = (Database)Naming.lookup(rmi);
-            //database.checkIn("NRIC", "name", "location", rmi);
-            database.read();
+            String rmi = "rmi://" + host + ":" + port + "/database";
+            Database database = (Database) Naming.lookup(rmi);
+            
+            // database.checkIn("S1234567A", "Lim", "nyp", rmi);
+            // database.read();
+            //database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-07T01:52:52.034223");
+            database.checkOut("S1234567B", "Tan", "nyp");
 
             System.out.println("completed");
             System.exit(0);
@@ -33,10 +36,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject {
         try {
             new Client();
         } catch (RemoteException e) {
-       e.printStackTrace();
+            e.printStackTrace();
         }
     }
-    
 
-    
 }
