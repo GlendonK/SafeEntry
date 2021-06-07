@@ -22,7 +22,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 Scanner scan = new Scanner(System.in);
                 choose = scan.nextInt();
 
-                //** open threads for each action; while loop will listen for inputs */
+                //* !TODO: open threads for each action; while loop will listen for inputs 
+                //* calling new functions should not register a new client obj ?
+                //* since its still the same obj no new instance instanciated  
+                
                 if (choose == 1 ) {
                     database.checkIn("S1234567B", "Alice", "nyp", this);
                     System.out.println("completed checkin");
@@ -35,16 +38,6 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 }
                 scan.close();
             
-            //database.setRemoteClient(this, "S1234567A");
-
-            // database.checkIn("S1234567B", "Alice", "nyp", this);
-            // database.read();
-            //database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-08T01:52:52.034223");
-            //database.checkOut("S1234567B", "Alice", "nyp");
-
-            
-            //System.exit(0);
-            //return;
         } catch (MalformedURLException urle) {
             urle.printStackTrace();
         } catch (RemoteException re) {
