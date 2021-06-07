@@ -21,6 +21,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         
     }
 
+    //* !TODO: mutex flag to prevent concurrent write access to CSV file. 
+    //* need thread joins and notify .... -.- 
+
     @Override
     public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote) {
 
