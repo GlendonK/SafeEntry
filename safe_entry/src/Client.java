@@ -27,13 +27,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 //* since its still the same obj no new instance instanciated  
                 
                 if (choose == 1 ) {
-                    database.checkIn("S1234567B", "Alice", "nyp", this);
+                    database.checkIn("S1234567B", "Bob", "nyp", this);
                     System.out.println("completed checkin");
                 } else if (choose == 2) {
-                    database.checkOut("S1234567B", "Alice", "nyp");
+                    database.checkOut("S1234567B", "Bob", "nyp");
                     System.out.println("completed checkout");
                 } else if (choose == 3) {
-                    database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-08T01:52:52.034223");
+                    database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-10T01:52:52.034223");
                     System.out.println("completed update");
                 }
                 scan.close();
@@ -48,14 +48,14 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     }
 
     @Override
-    public void confirmCheckIn() throws RemoteException {
-        System.out.println("Checked In.");
+    public void confirmCheckIn(String NRIC, String name, String location, String time) throws RemoteException {
+        System.out.println("Checked In: " + NRIC + " " + name +" " + location + " at " + time);
         
     }
 
     @Override
-    public void notifyCovid() throws RemoteException {
-        System.out.println("Infected");
+    public void notifyCovid(String location, String from, String to) throws RemoteException {
+        System.out.println("Possible Exposure at " + location + " from " + from + " to " + to );
         
     }
 

@@ -10,7 +10,7 @@ public interface Database extends java.rmi.Remote {
 
     public void delete()throws java.rmi.RemoteException;
 
-    public void setRemoteClient(RemoteClientInterface remote, String NRIC)throws java.rmi.RemoteException;
+    public void setRemoteClient(RemoteClientInterface remote, String NRIC, String name, String location, String time)throws java.rmi.RemoteException;
 
-    public void notifyClient(String NRIC)throws java.rmi.RemoteException;
+    public void notifyClient(String NRIC, String location, String from, String to)throws java.rmi.RemoteException;
 }

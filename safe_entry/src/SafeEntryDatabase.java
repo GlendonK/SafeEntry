@@ -27,15 +27,17 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     @Override
     public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote) {
 
-        final String line1[] = { NRIC, name, LocalDateTime.now().toString(), "", location, "not infected" };
+        final String time = LocalDateTime.now().toString();
+
+        final String line1[] = { NRIC, name, time, "", location, "not infected" };
 
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    setRemoteClient(remote, NRIC);
-                    System.out.println("Checking In...");
+                    setRemoteClient(remote, NRIC, name, location, time);
+                    System.out.println("Checking In " + NRIC + " " + name + " at " + location);
                     CSVWriter writer = new CSVWriter(new FileWriter("C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv", true));
 
                     writer.writeNext(line1);
@@ -93,7 +95,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         writer.writeAll(allData);
                                         writer.flush();
                                         writer.close();
-                                        System.out.println("Checked out at: " + row[3]);
+                                        System.out.println("Checked out" + NRIC + " "+ name + " at " + location + " at " + row[3]);
 
 
                                     }
@@ -187,7 +189,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                 long checkOut = 0;
                                 
                                 if (!row[3].isEmpty() ) {
-                                    System.out.println("THE CHECK OUT TIME: "+row[3].toString());
+                                    //System.out.println("THE CHECK OUT TIME: "+row[3].toString());
                                     checkOut =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[3]).getTime();
                                 } 
                                 
@@ -202,11 +204,10 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         writer.flush();
                                         writer.close();
     
-                                        System.out.println("infected location and time updated.");
+                                        System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4] + " from " + row[2] + " to " + row[3]);
     
                                         //** callback here */
-                                        System.out.println("NPE???");
-                                        notifyClient(row[0]);
+                                        notifyClient(row[0], location, checkInTime, checkOutTime);
                                         
                                 }
                             }
@@ -244,18 +245,18 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     @Override
-    public void setRemoteClient(RemoteClientInterface remote, String NRIC) {
+    public void setRemoteClient(RemoteClientInterface remote, String NRIC, String name, String location, String time) {
         SafeEntryDatabase.clientRemoteObjState.put(NRIC, remote);
         try {
-            SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn();
+            SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn(NRIC, name, location, time);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void notifyClient(String NRIC) throws RemoteException {
-        SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid();
+    public void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
+        SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid(location, from, to);
         return;
         
     }
