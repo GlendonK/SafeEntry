@@ -27,9 +27,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             Scanner scan = new Scanner(System.in); // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
-            // * !TODO: open threads for each action; while loop will listen for inputs
-            // * calling new functions should not register a new client obj ?
-            // * since its still the same obj no new instance instanciated
+            // * !TODO: family checkin and checkout */
 
             if (choose == 1) {
                 Thread thread = new Thread(new Runnable() {
