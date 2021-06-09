@@ -24,7 +24,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             int choose = 0;
 
             System.out.println("choose. 1(check in) 2(check out) 3(update)");
-            Scanner scan = new Scanner(System.in);
+            Scanner scan = new Scanner(System.in); // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
             // * !TODO: open threads for each action; while loop will listen for inputs

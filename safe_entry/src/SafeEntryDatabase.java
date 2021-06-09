@@ -4,25 +4,30 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import java.rmi.RemoteException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject implements Database {
     private static HashMap<String, RemoteClientInterface> clientRemoteObjState = new HashMap<String, RemoteClientInterface>();
+    private static Semaphore mutex = new Semaphore(1);
+
     public SafeEntryDatabase() throws java.rmi.RemoteException {
         // super();
-        
+
     }
 
-    //* !TODO: mutex flag to prevent concurrent write access to CSV file. 
-    //* need thread joins and notify .... -.- 
+    // * !TODO: mutex flag to prevent concurrent write access to CSV file.
+    // * need thread joins and notify .... -.-
 
     @Override
     public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote) {
@@ -36,9 +41,19 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             @Override
             public void run() {
                 try {
+                    mutex.acquire();
+                    System.out.println("mutex aquired");
                     setRemoteClient(remote, NRIC, name, location, time);
                     System.out.println("Checking In " + NRIC + " " + name + " at " + location);
-                    CSVWriter writer = new CSVWriter(new FileWriter("C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv", true));
+                    CSVWriter writer = new CSVWriter(
+                            new FileWriter("C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv", true));
+                    System.out.println(Thread.currentThread().getName());
+
+                    //** test semophore */
+                    // for (int i = 0; i < 10; i++) {
+                    //     writer.writeNext(line1);
+                    //     Thread.sleep(1000);
+                    // }
 
                     writer.writeNext(line1);
                     writer.close();
@@ -48,6 +63,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     e.printStackTrace();
                     System.out.println(e);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
                 }
 
             }
@@ -67,11 +87,14 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     public void checkOut(String NRIC, String name, String location) {
         final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
 
-        Thread thread = new Thread(new Runnable(){
+        Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
+
+                    mutex.acquire();
+
                     FileReader fileReader = new FileReader(csv_path);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
@@ -96,8 +119,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         writer.flush();
                                         writer.close();
                                         notifyCheckout(NRIC, name, location, row[3]);
-                                        System.out.println("Checked out" + NRIC + " "+ name + " at " + location + " at " + row[3]);
-
+                                        System.out.println("Checked out" + NRIC + " " + name + " at " + location
+                                                + " at " + row[3]);
+                                        System.out.println(Thread.currentThread().getName());
 
                                     }
                                 }
@@ -105,19 +129,25 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                         }
                         i++;
                     }
-                    
-                } catch (Exception e) {
-                    System.out.println(e);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
                 }
-                
+
             }
-            
+
         });
         thread.start();
         try {
             thread.join();
         } catch (InterruptedException e) {
-            
+
             System.out.println(e);
         }
 
@@ -143,7 +173,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     for (String[] col : allData) {
 
                         System.out.println(
-                            col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+                                col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
 
                     }
 
@@ -162,7 +192,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     @Override
-    public void updateInfectedLocation(String location, String checkInTime, String checkOutTime) throws RemoteException {
+    public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)
+            throws RemoteException {
         final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
 
         Thread thread = new Thread(new Runnable() {
@@ -170,6 +201,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             @Override
             public void run() {
                 try {
+                    mutex.acquire();
                     FileReader fileReader = new FileReader(csv_path);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
@@ -178,52 +210,60 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     int i = 0;
 
-                    if (allData.size() > 0 ) {
+                    if (allData.size() > 0) {
 
-                        for (String[] row: allData) {
-                            //System.out.println(row[4]+" .....");
+                        for (String[] row : allData) {
+                            // System.out.println(row[4]+" .....");
                             if (row[4].toString().contains(location)) {
-                                //System.out.println(row[4]);
-                                long infectedCheckIn =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(checkInTime).getTime();
-                                long infectedCheckout =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(checkOutTime).getTime();
-                                long checkIn =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[2]).getTime();
+                                // System.out.println(row[4]);
+                                long infectedCheckIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(checkInTime)
+                                        .getTime();
+                                long infectedCheckout = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                                        .parse(checkOutTime).getTime();
+                                long checkIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[2]).getTime();
                                 long checkOut = 0;
-                                
-                                if (!row[3].isEmpty() ) {
-                                    //System.out.println("THE CHECK OUT TIME: "+row[3].toString());
-                                    checkOut =new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[3]).getTime();
-                                } 
-                                
-                                
-                                  
-    
-                                if (checkIn >= infectedCheckIn || checkOut >= infectedCheckIn || checkIn <= infectedCheckout) {
-                                    
-                                        row[5] = "infected";
-                                        CSVWriter writer = new CSVWriter(new FileWriter(csv_path));
-                                        writer.writeAll(allData);
-                                        writer.flush();
-                                        writer.close();
-    
-                                        System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4] + " from " + row[2] + " to " + row[3]);
-    
-                                        //** callback here */
-                                        notifyClient(row[0], location, checkInTime, checkOutTime);
-                                        
+
+                                if (!row[3].isEmpty()) {
+                                    // System.out.println("THE CHECK OUT TIME: "+row[3].toString());
+                                    checkOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[3]).getTime();
+                                }
+
+                                if (checkIn >= infectedCheckIn || checkOut >= infectedCheckIn
+                                        || checkIn <= infectedCheckout) {
+
+                                    row[5] = "infected";
+                                    CSVWriter writer = new CSVWriter(new FileWriter(csv_path));
+                                    writer.writeAll(allData);
+                                    writer.flush();
+                                    writer.close();
+
+                                    System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4]
+                                            + " from " + row[2] + " to " + row[3]);
+
+                                    // ** callback here */
+                                    notifyClient(row[0], location, checkInTime, checkOutTime);
+
                                 }
                             }
                             i++;
                         }
-    
+
                     } else if (allData.size() < 1) {
                         System.out.println("NO DATA");
                     }
 
-                    
                     csvReader.close();
 
-                } catch (Exception e) {
+                } catch (IOException e) {
                     System.out.println(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
                 }
             }
 
@@ -259,13 +299,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     public void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid(location, from, to);
         return;
-        
+
     }
 
     @Override
     public void notifyCheckout(String NRIC, String name, String location, String time) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckOut(NRIC, name, location, time);
         return;
-        
+
     }
 }
