@@ -47,9 +47,17 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
     }
 
+
+    //** Callback functions */
     @Override
     public void confirmCheckIn(String NRIC, String name, String location, String time) throws RemoteException {
         System.out.println("Checked In: " + NRIC + " " + name +" " + location + " at " + time);
+        
+    }
+
+    @Override
+    public void confirmCheckOut(String NRIC, String name, String location, String time) throws RemoteException {
+        System.out.println("Checked Out: " + NRIC + " " + name +" " + location + " at " + time);
         
     }
 
@@ -66,7 +74,5 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             e.printStackTrace();
         }
     }
-
-    
 
 }

@@ -95,6 +95,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         writer.writeAll(allData);
                                         writer.flush();
                                         writer.close();
+                                        notifyCheckout(NRIC, name, location, row[3]);
                                         System.out.println("Checked out" + NRIC + " "+ name + " at " + location + " at " + row[3]);
 
 
@@ -257,6 +258,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     @Override
     public void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid(location, from, to);
+        return;
+        
+    }
+
+    @Override
+    public void notifyCheckout(String NRIC, String name, String location, String time) throws RemoteException {
+        SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckOut(NRIC, name, location, time);
         return;
         
     }
