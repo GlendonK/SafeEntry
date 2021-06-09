@@ -20,6 +20,7 @@ import java.util.concurrent.Semaphore;
 public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject implements Database {
     private static HashMap<String, RemoteClientInterface> clientRemoteObjState = new HashMap<String, RemoteClientInterface>();
     private static Semaphore mutex = new Semaphore(1);
+    private final String CSV_PATH = "safe_entry_db.csv";
 
     public SafeEntryDatabase() throws java.rmi.RemoteException {
         // super();
@@ -43,7 +44,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     setRemoteClient(remote, NRIC, name, location, time);
                     System.out.println("Checking In " + NRIC + " " + name + " at " + location);
                     CSVWriter writer = new CSVWriter(
-                            new FileWriter("C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv", true));
+                            new FileWriter(CSV_PATH, true));
                     System.out.println(Thread.currentThread().getName());
 
                     //** test semophore */
@@ -82,7 +83,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     @Override
     public void checkOut(String NRIC, String name, String location) {
-        final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
 
         Thread thread = new Thread(new Runnable() {
 
@@ -92,7 +92,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     mutex.acquire();
 
-                    FileReader fileReader = new FileReader(csv_path);
+                    FileReader fileReader = new FileReader(CSV_PATH);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
 
@@ -111,7 +111,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                     if (row[3].equals("") || row[3].equals(null)) {
                                         row[3] = LocalDateTime.now().toString();
 
-                                        CSVWriter writer = new CSVWriter(new FileWriter(csv_path));
+                                        CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
                                         writer.writeAll(allData);
                                         writer.flush();
                                         writer.close();
@@ -154,14 +154,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     @Override
     public void read() throws RemoteException {
-        final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
 
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    FileReader fileReader = new FileReader(csv_path);
+                    FileReader fileReader = new FileReader(CSV_PATH);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
 
@@ -191,7 +190,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     @Override
     public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)
             throws RemoteException {
-        final String csv_path = "C:/Users/glend/Desktop/safe/safe_entry/src/safe_entry_db.csv";
 
         Thread thread = new Thread(new Runnable() {
 
@@ -199,7 +197,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     mutex.acquire();
-                    FileReader fileReader = new FileReader(csv_path);
+                    FileReader fileReader = new FileReader(CSV_PATH);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
 
@@ -229,7 +227,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         || checkIn <= infectedCheckout) {
 
                                     row[5] = "infected";
-                                    CSVWriter writer = new CSVWriter(new FileWriter(csv_path));
+                                    CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
                                     writer.writeAll(allData);
                                     writer.flush();
                                     writer.close();
