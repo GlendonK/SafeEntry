@@ -1,6 +1,21 @@
+/*
+ * RemoteClientInterface
+ * 
+ * CSC 3004 lab assignment
+ * 
+ * author: Glendon Keh 1901884, Aloysius Goh 1902774
+ * 
+ * submission date: 18 june 2021 
+ * 
+*/
+
+/**
+ * RemoteClientInterface is used for server to callback to client.
+ */
 import java.rmi.Remote;
 
 public interface RemoteClientInterface extends Remote {
+    
     public void confirmCheckIn(String NRIC, String name, String location, String time) throws java.rmi.RemoteException;
 
     public void confirmCheckOut(String NRIC, String name, String location, String time) throws java.rmi.RemoteException;

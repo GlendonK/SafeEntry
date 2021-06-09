@@ -1,3 +1,13 @@
+/*
+ * SafeEntryDatabase
+ * 
+ * CSC 3004 lab assignment
+ * 
+ * author: Glendon Keh 1901884, Aloysius Goh 1902774
+ * 
+ * submission date: 18 june 2021 
+ * 
+*/
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -17,29 +27,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+/**
+ * SafeEntryDatabase extends UnicastRemoteObject and implements Database.
+ * UnicastRemoteObject allows for the remote object to be invoked by the client.
+ * Database provides the methods to override.
+ * SafeEntryDatabase contains the business logic of the application and database access.
+ */
 public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject implements Database {
+    
+    /* used to save the client invoked object */
     private static HashMap<String, RemoteClientInterface> clientRemoteObjState = new HashMap<String, RemoteClientInterface>();
-    private static Semaphore mutex = new Semaphore(1);
-    private final String CSV_PATH = "safe_entry_db.csv";
+    private static Semaphore mutex = new Semaphore(1);          // semophore to prevent 2 threads writing the database csv.
+    private final String CSV_PATH = "safe_entry_db.csv";        // the database
 
     public SafeEntryDatabase() throws java.rmi.RemoteException {
         // super();
 
     }
 
+    /**
+     * checkIn method is called by client and will write the client check in details into the database.
+     * the remote invoked object by the client is also saved to a static class variable `clientRemoteObjState`.
+     * @param NRIC String client NRIC.
+     * @param name String client name.
+     * @param location String client loction of checking in.
+     * @param remote RemoteClientInterface invoked object by client.
+     */
     @Override
     public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote) {
 
         final String time = LocalDateTime.now().toString();
 
-        final String line1[] = { NRIC, name, time, "", location, "not infected" };
+        final String line1[] = { NRIC, name, time, "", location, "not infected" };      // default everyone is not infected.
 
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    mutex.acquire();
+                    mutex.acquire();        // only threads holding the semaphore can write to database.
                     System.out.println("mutex aquired");
                     setRemoteClient(remote, NRIC, name, location, time);
                     System.out.println("Checking In " + NRIC + " " + name + " at " + location);
@@ -47,13 +73,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                             new FileWriter(CSV_PATH, true));
                     System.out.println(Thread.currentThread().getName());
 
-                    //** test semophore */
+                    /* test semaphore */
                     // for (int i = 0; i < 10; i++) {
                     //     writer.writeNext(line1);
                     //     Thread.sleep(1000);
                     // }
 
-                    writer.writeNext(line1);
+                    writer.writeNext(line1);    // write the data to the next line
                     writer.close();
                     return;
 
@@ -65,7 +91,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 } finally {
-                    mutex.release();
+                    mutex.release();        // release the semaphore for other threads to use.
                 }
 
             }
@@ -73,7 +99,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         });
         thread.start();
         try {
-            thread.join();
+            thread.join();      // wait for thread to end.
         } catch (InterruptedException e) {
             System.out.println(e);
         }
@@ -81,6 +107,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     }
 
+    /**
+     * checkOut method is called by client to write the check out time to database.
+     * @param NRIC String of client NRIC.
+     * @param name String of client name.
+     * @param location String of client checkout location.
+     */
     @Override
     public void checkOut(String NRIC, String name, String location) {
 
@@ -100,6 +132,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     int i = 0;
 
+                    /**
+                     * check if NRIC, name and location then write the check out time.
+                     */
                     for (String[] row : allData) {
                         System.out.println("....");
                         if (row[0].equals(NRIC)) {
@@ -152,41 +187,14 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     }
 
-    @Override
-    public void read() throws RemoteException {
-
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    FileReader fileReader = new FileReader(CSV_PATH);
-
-                    CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
-
-                    List<String[]> allData = csvReader.readAll();
-
-                    for (String[] col : allData) {
-
-                        System.out.println(
-                                col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
-
-                    }
-
-                    csvReader.close();
-
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
-
-        });
-        thread.start();
-
-        return;
-
-    }
-
+    /**
+     * updateInfectedLocation is called by officer to notify all user if they had contact with 
+     * an infected individual.
+     * @param location String locations that the infected had been to.
+     * @param checkInTime String the check in time by the infected. 'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @param checkOutTime String the check out time by the infected. 'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @throws RemoteException
+     */
     @Override
     public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)
             throws RemoteException {
@@ -205,6 +213,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     int i = 0;
 
+                    /**
+                     * check if database is not empty.
+                     * check all database entries that match the infected's loaction and timeframe, then 
+                     * write the status to "infected" and do a callback to notify the affected users.
+                     */
                     if (allData.size() > 0) {
 
                         for (String[] row : allData) {
@@ -274,14 +287,56 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     }
 
-    @Override
-    public void delete() throws RemoteException {
+    /**
+     * not used.
+     * @deprecated
+     */
+    private void read() {
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileReader fileReader = new FileReader(CSV_PATH);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    for (String[] col : allData) {
+
+                        System.out.println(
+                                col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+
+                    }
+
+                    csvReader.close();
+
+                } catch (IOException e) {
+                    System.out.println(e);
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+        thread.start();
+
         return;
 
     }
 
-    @Override
-    public void setRemoteClient(RemoteClientInterface remote, String NRIC, String name, String location, String time) {
+    /**
+     * setRemoteClient method is used to save the invoked object by clients and callback to notify client 
+     * that check in is successful.
+     * @param remote RemoteClientInterface invoked object by client.
+     * @param NRIC String NRIC of client.
+     * @param name String name of client.
+     * @param location String location of check in.
+     * @param time String time of check in.'yyyy-MM-dd'T'HH:mm:ss' format.
+     */
+    private void setRemoteClient(RemoteClientInterface remote, String NRIC, String name, String location, String time) {
         SafeEntryDatabase.clientRemoteObjState.put(NRIC, remote);
         try {
             SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn(NRIC, name, location, time);
@@ -290,15 +345,29 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         }
     }
 
-    @Override
-    public void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
+    /**
+     * notifyClient method nottify the client if he/she has been exposed to infect individuals.
+     * @param NRIC String NRIC of client.
+     * @param location String location of infected place.
+     * @param from String time of infected check in.'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @param to String time of infected check out.'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @throws RemoteException
+     */
+    private void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid(location, from, to);
         return;
 
     }
 
-    @Override
-    public void notifyCheckout(String NRIC, String name, String location, String time) throws RemoteException {
+    /**
+     * notifyCheckout method callback to give feedback to client that check out is successful.
+     * @param NRIC String NRIC of client.
+     * @param name String name of client.
+     * @param location String location of check out.
+     * @param time String time of check out.'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @throws RemoteException
+     */
+    private void notifyCheckout(String NRIC, String name, String location, String time) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckOut(NRIC, name, location, time);
         return;
 
