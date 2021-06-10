@@ -9,6 +9,9 @@
  * 
 */
 
+import java.util.HashMap;
+import java.util.List;
+
 /**
  * Database interface extends the Remote interface.
  * Database interface is used by both client and server.
@@ -16,6 +19,8 @@
  */
 public interface Database extends java.rmi.Remote {
     public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote)throws java.rmi.RemoteException;
+
+    public void familyCheckIn(HashMap<String, List<String>> info, RemoteClientInterface remote)throws java.rmi.RemoteException;
 
     public void checkOut(String NRIC, String name, String location)throws java.rmi.RemoteException;
 

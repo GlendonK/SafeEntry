@@ -107,6 +107,63 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     }
 
+    @Override
+    public void familyCheckIn(HashMap<String, List<String>> info,RemoteClientInterface remote ) {
+
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    String NRIC = info.get("" + 0 + "").get(0);
+                    String name = info.get("" + 0 + "").get(1);
+                    String location = info.get("" + 0 + "").get(2);
+                    final String time = LocalDateTime.now().toString(); 
+                    setRemoteClient(remote, NRIC, name, location, time);
+                    System.out.println("Checking In...");
+                    CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH, true));
+                    for (int i = 0; i < info.size(); i++) 
+                    {
+                        System.out.println(info.get("" + i + ""));
+                        if(info.get("" + i + "").get(0) == NRIC){
+
+                            String line1[] = {NRIC, name, time, "", location, "not infected",NRIC };
+                            writer.writeNext(line1);
+                        
+                        }else{
+
+                            String line1[] = {info.get("" + i + "").get(0), info.get("" + i + "").get(1), time, "", info.get("" + i + "").get(2), "not infected"};                  
+                            writer.writeNext(line1);
+
+                        }
+                    }
+                    writer.close();
+                    return;
+
+                } catch (IOException e) {
+
+                    e.printStackTrace();
+                    System.out.println(e);
+                }
+
+            }
+
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
+        return;
+
+    }
+
+
+
+
+
     /**
      * checkOut method is called by client to write the check out time to database.
      * @param NRIC String of client NRIC.

@@ -15,6 +15,9 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Client class is to start the user and officer interaction with the system.
@@ -41,7 +44,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             int choose = 0;
 
-            System.out.println("choose. 1(check in) 2(check out) 3(update)");
+            System.out.println("choose. 1(check in) 2(check out) 3(update) 4(family check in)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
@@ -78,6 +81,29 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                  * For officer to update covid location
                 */
                 database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-10T01:52:52.034223");
+                System.out.println("completed update");
+            } else if (choose == 4) {
+                /**
+                 * family check in
+                 */
+                HashMap<String, List<String>> info = new HashMap<String, List<String>>();
+                List<String> user1 = new ArrayList<String>();
+                List<String> user2 = new ArrayList<String>();
+                List<String> user3 = new ArrayList<String>();
+                user1.add("S1234567F");
+                user1.add("Aloy");
+                user1.add("nyp");
+                user2.add("S1234567G");
+                user2.add("Glen");
+                user2.add("nyp");
+                user3.add("S1234567H");
+                user3.add("CaoQi");
+                user3.add("nyp");
+                info.put("0",user1);
+                info.put("1",user2);
+                info.put("2",user3);
+                System.out.println(info);
+                database.familyCheckIn(info, this);
                 System.out.println("completed update");
             }
 
