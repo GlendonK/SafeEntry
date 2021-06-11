@@ -9,15 +9,10 @@
  * 
 */
 
-
-import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Scanner;
 
 /**
@@ -67,14 +62,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                         try {
                             database.setRemoteClientState(client, NRIC);        // add client remote object to server state
                             database.checkIn(NRIC, name, location);
-                            checkServerThread(database, NRIC);
+                            checkServerThread(database, NRIC);                  // starts checking every 5 secs if server alive
                             System.out.println("\ndone checking in line ...");
                         } catch (RemoteException re) {
                             re.printStackTrace();
                             System.out.println("\nPlease try check in again.\n");
                         }
                         //System.out.println("completed checkin");
-
                     }
 
                 });
@@ -87,12 +81,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 database.checkOut(NRIC, name, location.toLowerCase());
                 //System.out.println("completed checkout");
                 
-                
             } else if (choose == 3) {
                 
                 /** 
-                 * For officer to update covid location
-                 * TODO: set location to lowercase.
+                 * For officer to update covid location.
                  */
                 database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
                 System.out.println("completed update");
@@ -176,6 +168,11 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
     }
 
+    /**
+     * method to run a thread checkServer method.
+     * @param database the remote object to invoke.
+     * @param NRIC String NRIC of user.
+     */
     private void checkServerThread(Database database, String NRIC) {
         Thread thread = new Thread(new Runnable(){
 
@@ -188,6 +185,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         thread.start();
     }
 
+    /**
+     * method to check every 5 secs for server status. If server not alive, keep trying to 
+     * look up for server rmi url in the rmi registry. When server is alive again, send this class's
+     * instance to server to restore state. 
+     * @param database the remote object to invoke.
+     * @param NRIC String NRIC of user.
+     */
     public void checkServer(Database database, String NRIC) {
 
         while(true){
@@ -202,6 +206,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     Thread.sleep(5000);
                 }
             } catch (RemoteException e) {
+                /**
+                 * try lookup rmi url again and restore state.
+                 * recursively call checkServer method to keep trying.
+                 */
                 System.out.println("Server is Dead");
                 try {
                     String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database

@@ -12,14 +12,7 @@
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
-import java.rmi.server.RemoteServer;
-import java.rmi.server.ServerNotActiveException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -65,6 +58,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     public void checkIn(String NRIC, String name, String location) {
 
         final String time = LocalDateTime.now().toString();
+
+        /**
+         * code to get the ip of client.
+         * code to get the remote object reference
+         */
         // String clientObj;
         // Remote remote;
 
@@ -317,10 +315,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
-     * not used.
-     * @deprecated
+     * For client to see all of database
+     * @TODO: pretty print this
      */
-    private void read() {
+    @Override
+    public void read() {
 
         Thread thread = new Thread(new Runnable() {
 
@@ -358,6 +357,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     /**
      * isAlive remote method for client to check server is alive.
+     * @return true to indicate server is alive.
      */
     @Override
     public boolean isAlive() throws RemoteException {
