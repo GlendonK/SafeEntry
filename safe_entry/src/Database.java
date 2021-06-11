@@ -10,16 +10,19 @@
 */
 
 /**
- * Database interface extends the Remote interface.
- * Database interface is used by both client and server.
- * Client need to know the methods to call and server needs to override the methods.
+ * Database interface extends the Remote interface. Database interface is used
+ * by both client and server. Client need to know the methods to call and server
+ * needs to override the methods.
  */
 public interface Database extends java.rmi.Remote {
-    public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote)throws java.rmi.RemoteException;
+    public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote)
+            throws java.rmi.RemoteException;
 
-    public void checkOut(String NRIC, String name, String location)throws java.rmi.RemoteException;
+    public void checkOut(String NRIC, String name, String location) throws java.rmi.RemoteException;
 
-    public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)throws java.rmi.RemoteException;
+    public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)
+            throws java.rmi.RemoteException;
 
+    public boolean setRemoteClientState(RemoteClientInterface remote, String NRIC) throws java.rmi.RemoteException;
 
 }

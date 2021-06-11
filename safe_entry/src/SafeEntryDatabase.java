@@ -67,7 +67,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                 try {
                     mutex.acquire();        // only threads holding the semaphore can write to database.
                     System.out.println("mutex aquired");
-                    setRemoteClient(remote, NRIC, name, location, time);
+                    
                     System.out.println("Checking In " + NRIC + " " + name + " at " + location);
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
@@ -81,6 +81,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
+                    notifyCheckIn(NRIC, name, location, time);
                     return;
 
                 } catch (IOException e) {
@@ -150,7 +151,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                         writer.writeAll(allData);
                                         writer.flush();
                                         writer.close();
-                                        notifyCheckout(NRIC, name, location, row[3]);
+                                        notifyCheckOut(NRIC, name, location, row[3]);
                                         System.out.println("Checked out" + NRIC + " " + name + " at " + location
                                                 + " at " + row[3]);
                                         System.out.println(Thread.currentThread().getName());
@@ -328,16 +329,20 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
-     * setRemoteClient method is used to save the invoked object by clients and callback to notify client 
-     * that check in is successful.
+     * setRemoteClient method is used to save the invoked object by clients
      * @param remote RemoteClientInterface invoked object by client.
      * @param NRIC String NRIC of client.
-     * @param name String name of client.
-     * @param location String location of check in.
-     * @param time String time of check in.'yyyy-MM-dd'T'HH:mm:ss' format.
      */
-    private void setRemoteClient(RemoteClientInterface remote, String NRIC, String name, String location, String time) {
+    @Override
+    public boolean setRemoteClientState(RemoteClientInterface remote, String NRIC) {
         SafeEntryDatabase.clientRemoteObjState.put(NRIC, remote);
+        return true;
+        
+    }
+
+    //** COMMENT DOCUMENTATION */
+
+    private void notifyCheckIn(String NRIC, String name, String location, String time) {
         try {
             SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn(NRIC, name, location, time);
         } catch (RemoteException e) {
@@ -367,7 +372,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @param time String time of check out.'yyyy-MM-dd'T'HH:mm:ss' format.
      * @throws RemoteException
      */
-    private void notifyCheckout(String NRIC, String name, String location, String time) throws RemoteException {
+    private void notifyCheckOut(String NRIC, String name, String location, String time) throws RemoteException {
         SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckOut(NRIC, name, location, time);
         return;
 

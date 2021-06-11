@@ -10,10 +10,14 @@
 */
 
 
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 /**
@@ -22,8 +26,9 @@ import java.util.Scanner;
 */
 public class Client extends java.rmi.server.UnicastRemoteObject implements RemoteClientInterface {
 
-    static int port = 1099;                 // port used for rmi
-    static String host = "localhost";       // network address of server
+    final int port = 1099;                 // port used for rmi
+    final String host = "localhost";       // network address of server
+    private boolean serverAlive = false;
 
     public Client() throws RemoteException {
         // super();
@@ -34,16 +39,21 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      * method to start asking user for input.
      */
     public void run() {
+        int choose = 0;
+        String NRIC = "S1234567B";
+        String name = "Bob";
+        String location = "NYP";
         try {
 
             Client client = new Client();
             String rmi = "rmi://" + host + ":" + port + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
-            int choose = 0;
-
+            
             System.out.println("choose. 1(check in) 2(check out) 3(update)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
+
+            
 
             // * !TODO: family checkin and checkout */
 
@@ -56,7 +66,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     @Override
                     public void run() {
                         try {
-                            database.checkIn("S1234567B", "Bob", "nyp", client);
+                            database.setRemoteClientState(client, NRIC);
+                            database.checkIn(NRIC, name, location, client);
                         } catch (RemoteException re) {
                             re.printStackTrace();
                         }
@@ -71,20 +82,39 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 /** 
                  * check out
                 */
-                database.checkOut("S1234567B", "Bob", "nyp");
+                database.checkOut(NRIC, name, location);
                 System.out.println("completed checkout");
+                
+                
             } else if (choose == 3) {
                 /** 
                  * For officer to update covid location
                 */
-                database.updateInfectedLocation("nyp", "2021-06-07T00:52:52.034223", "2021-06-10T01:52:52.034223");
+                database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
                 System.out.println("completed update");
             }
 
         } catch (MalformedURLException urle) {
             urle.printStackTrace();
         } catch (RemoteException re) {
-            re.printStackTrace();
+            System.out.println(re);
+            System.out.println("\nRetrying...\n");
+            if (choose == 2) {
+                try {
+                    Client client = new Client();
+                    String rmi = "rmi://" + host + ":" + port + "/database";    // server binded to address ending with /database
+                    Database database = (Database) Naming.lookup(rmi);
+                    database.setRemoteClientState(client, NRIC);
+                } catch (RemoteException e) {
+                    System.out.println("\nretry failed, pleas check out again\n");
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (NotBoundException e) {
+                    e.printStackTrace();
+                }
+                
+            }
+
         } catch (NotBoundException nbe) {
             nbe.printStackTrace();
         }
@@ -149,5 +179,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             e.printStackTrace();
         }
     }
+
+    
 
 }
