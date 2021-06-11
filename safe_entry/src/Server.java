@@ -16,8 +16,8 @@ import java.rmi.Naming;
  */
 public class Server {
 
-    final int PORT = 1099;                 // port used for rmi
-    final String HOST = "localhost";       // network address of server
+    final private int PORT = 1099;                 // port used for rmi
+    final private String HOST = "localhost";       // network address of server
 
     public Server() {
         try {

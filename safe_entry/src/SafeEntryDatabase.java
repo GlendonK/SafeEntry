@@ -12,8 +12,14 @@
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
+import java.rmi.server.RemoteServer;
+import java.rmi.server.ServerNotActiveException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -40,9 +46,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     private static Semaphore mutex = new Semaphore(1);          // semophore to prevent 2 threads writing the database csv.
     private final String CSV_PATH = "safe_entry_db.csv";        // the database
 
+    
+
     public SafeEntryDatabase() throws java.rmi.RemoteException {
         // super();
-
+    
     }
 
     /**
@@ -54,9 +62,29 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @param remote RemoteClientInterface invoked object by client.
      */
     @Override
-    public void checkIn(String NRIC, String name, String location, RemoteClientInterface remote) {
+    public void checkIn(String NRIC, String name, String location) {
 
         final String time = LocalDateTime.now().toString();
+        // String clientObj;
+        // Remote remote;
+
+        // try {
+        //     clientObj = RemoteServer.getClientHost();
+        //     remote = Naming.lookup("//localhost/database");
+            
+        // } catch (ServerNotActiveException e1) {
+        //     e1.printStackTrace();
+        //     clientObj="";
+        // } catch (MalformedURLException e) {
+        //     clientObj="";
+        //     e.printStackTrace();
+        // } catch (RemoteException e) {
+        //     clientObj="";
+        //     e.printStackTrace();
+        // } catch (NotBoundException e) {
+        //     clientObj="";
+        //     e.printStackTrace();
+        // }
 
         final String line1[] = { NRIC, name, time, "", location.toLowerCase(), "not infected" };      // default everyone is not infected.
 
@@ -223,7 +251,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                         for (String[] row : allData) {
                             // System.out.println(row[4]+" .....");
-                            if (row[4].toString().contains(location)) {
+                            if (row[4].toString().contains(location.toLowerCase())) {
                                 // System.out.println(row[4]);
                                 long infectedCheckIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(checkInTime)
                                         .getTime();
@@ -250,7 +278,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             + " from " + row[2] + " to " + row[3]);
 
                                     // ** callback here */
-                                    notifyClient(row[0], location, checkInTime, checkOutTime);
+                                    notifyClient(row[0], location.toLowerCase(), checkInTime, checkOutTime);
 
                                 }
                             }
@@ -329,6 +357,14 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
+     * isAlive remote method for client to check server is alive.
+     */
+    @Override
+    public boolean isAlive() throws RemoteException {
+        return true;
+    }
+
+    /**
      * setRemoteClient method is used to save the invoked object by clients
      * @param remote RemoteClientInterface invoked object by client.
      * @param NRIC String NRIC of client.
@@ -383,4 +419,5 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         return;
 
     }
+
 }

@@ -26,8 +26,9 @@ import java.util.Scanner;
 */
 public class Client extends java.rmi.server.UnicastRemoteObject implements RemoteClientInterface {
 
-    final int PORT = 1099;                 // port used for rmi
-    final String HOST = "localhost";       // network address of server
+    final private int PORT = 1099;                 // port used for rmi
+    final private String HOST = "localhost";       // network address of server
+    private boolean isAlive = false;
 
     public Client() throws RemoteException {
         // super();
@@ -39,12 +40,12 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      */
     public void run() {
         int choose = 0;
-        String NRIC = "S1234567A";
-        String name = "Alice";
+        String NRIC = "S1234567B";
+        String name = "Bob";
         String location = "NYP";
         try {
 
-            Client client = new Client();
+            Client client = this;
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
@@ -53,7 +54,6 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             choose = scan.nextInt();
 
             
-
             //TODO: family checkin and checkout
 
             if (choose == 1) {
@@ -66,7 +66,9 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     public void run() {
                         try {
                             database.setRemoteClientState(client, NRIC);        // add client remote object to server state
-                            database.checkIn(NRIC, name, location, client);
+                            database.checkIn(NRIC, name, location);
+                            checkServerThread(database, NRIC);
+                            System.out.println("\ndone checking in line ...");
                         } catch (RemoteException re) {
                             re.printStackTrace();
                             System.out.println("\nPlease try check in again.\n");
@@ -107,10 +109,9 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
              */
             if (choose == 2) {
                 try {
-                    Client client = new Client();
                     String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
                     Database database = (Database) Naming.lookup(rmi);
-                    database.setRemoteClientState(client, NRIC);
+                    database.setRemoteClientState(this, NRIC);
                 } catch (RemoteException e) {
                     System.out.println("\nretry failed, please check out again\n");
                 } catch (MalformedURLException e) {
@@ -173,6 +174,54 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     public void notifyCovid(String location, String from, String to) throws RemoteException {
         System.out.println("Possible Exposure at " + location + " from " + from + " to " + to);
 
+    }
+
+    private void checkServerThread(Database database, String NRIC) {
+        Thread thread = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                checkServer(database, NRIC);                
+            }
+            
+        });
+        thread.start();
+    }
+
+    public void checkServer(Database database, String NRIC) {
+
+        while(true){
+            try {
+                if (database.isAlive() != true) {
+                    isAlive = false;
+                    //Thread.sleep(5000);
+                    
+                } else {
+                    isAlive = true;
+                    System.out.println("Server is Alive");
+                    Thread.sleep(5000);
+                }
+            } catch (RemoteException e) {
+                System.out.println("Server is Dead");
+                try {
+                    String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
+                    database = (Database) Naming.lookup(rmi);
+                    database.setRemoteClientState(this, NRIC);
+                    checkServer(database, NRIC);    
+                } catch (RemoteException re) {
+                    re.printStackTrace();
+                } catch (MalformedURLException e1) {
+                    e1.printStackTrace();
+                } catch (NotBoundException e1) {
+                    e1.printStackTrace();
+                }
+                
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+            
+        }
+        
     }
 
     public static void main(String[] args) {
