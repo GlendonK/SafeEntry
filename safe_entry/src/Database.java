@@ -24,6 +24,8 @@ public interface Database extends java.rmi.Remote {
 
     public void checkOut(String NRIC, String name, String location)throws java.rmi.RemoteException;
 
+    public void familyCheckOut(HashMap<String, List<String>> info)throws java.rmi.RemoteException;
+
     public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)throws java.rmi.RemoteException;
 
 

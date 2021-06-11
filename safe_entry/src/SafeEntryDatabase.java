@@ -116,32 +116,45 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             @Override
             public void run() {
                 try {
-                    String NRIC = info.get("" + 0 + "").get(0);
-                    String name = info.get("" + 0 + "").get(1);
-                    String location = info.get("" + 0 + "").get(2);
-                    final String time = LocalDateTime.now().toString(); 
-                    setRemoteClient(remote, NRIC, name, location, time);
-                    System.out.println("Checking In...");
-                    CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH, true));
-                    for (int i = 0; i < info.size(); i++) 
-                    {
-                        System.out.println(info.get("" + i + ""));
-                        if(info.get("" + i + "").get(0) == NRIC){
 
-                            String line1[] = {NRIC, name, time, "", location, "not infected",NRIC };
+                    int index = 0;
+                    final String time = LocalDateTime.now().toString();
+                    CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH, true)); 
+
+
+
+                    for (String key : info.keySet()) {
+                    String nric = info.get(key).get(0);
+                    String name = info.get(key).get(1);
+                    String location = info.get(key).get(2);
+                    System.out.println(info);
+                    System.out.println(nric);
+                    
+                        if(index==0)
+                        {
+
+                            setRemoteClient(remote, nric, name, location, time);
+                            System.out.println("Checking In...");
+                            String line1[] = {nric, name, time, "", location, "not infected",nric };
                             writer.writeNext(line1);
+                            index = 1;
                         
-                        }else{
+                        }
 
-                            String line1[] = {info.get("" + i + "").get(0), info.get("" + i + "").get(1), time, "", info.get("" + i + "").get(2), "not infected"};                  
+                        else
+                        {
+
+                            String line1[] = {nric, name, time, "", location, "not infected"};                  
                             writer.writeNext(line1);
 
                         }
+                    
                     }
                     writer.close();
                     return;
 
-                } catch (IOException e) {
+                
+             } catch (IOException e) {
 
                     e.printStackTrace();
                     System.out.println(e);
@@ -219,6 +232,95 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                         i++;
                     }
 
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
+                }
+
+            }
+
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+
+            System.out.println(e);
+        }
+
+        return;
+
+    }
+
+
+    @Override
+    public void familyCheckOut(HashMap<String, List<String>> info) {
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+
+                    mutex.acquire();
+
+                    FileReader fileReader = new FileReader(CSV_PATH);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    int i = 0;
+
+                    /**
+                     * check if NRIC, name and location then write the check out time.
+                     */
+                    for (String key : info.keySet()) {
+                        String nric = info.get(key).get(0);
+                        String name = info.get(key).get(1);
+                        String location = info.get(key).get(2);
+                        System.out.println(info);
+                        System.out.println(nric);
+                       
+                        for (String[] row : allData) {
+                            System.out.println("....");
+                            if (row[0].equals(nric)) {
+                                System.out.println(nric);
+                                if (row[1].equals(name)) {
+                                    System.out.println(name);
+                                    if (row[4].equals(location)) {
+                                        System.out.println(location);
+                                        if (row[3].equals("") || row[3].equals(null)) {
+                                            row[3] = LocalDateTime.now().toString();
+
+                                            CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
+                                            writer.writeAll(allData);
+                                            writer.flush();
+                                            writer.close();
+                                            if(i == 0){
+                                                notifyCheckout(nric, name, location, row[3]);
+                                                System.out.println("Checked out" + nric + " " + name + " at " + location
+                                                + " at " + row[3]);
+                                                System.out.println(Thread.currentThread().getName());
+                                                i++;
+                                            }
+                                            else{
+                                                System.out.println("Checked out" + nric + " " + name + " at " + location
+                                                + " at " + row[3]);
+                                            }
+
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (CsvException e) {
