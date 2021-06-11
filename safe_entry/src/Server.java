@@ -16,13 +16,13 @@ import java.rmi.Naming;
  */
 public class Server {
 
-    static int port = 1099;                 // port used for rmi
-    static String host = "localhost";       // network address of server
+    final int PORT = 1099;                 // port used for rmi
+    final String HOST = "localhost";       // network address of server
 
     public Server() {
         try {
             Database database = new SafeEntryDatabase();
-            Naming.rebind("rmi://" + host + ":" + port + "/database", database);    // server bind to address
+            Naming.rebind("rmi://" + HOST + ":" + PORT + "/database", database);    // server bind to address
         } catch (Exception e) {
             e.printStackTrace();
         }

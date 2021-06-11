@@ -58,7 +58,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
         final String time = LocalDateTime.now().toString();
 
-        final String line1[] = { NRIC, name, time, "", location, "not infected" };      // default everyone is not infected.
+        final String line1[] = { NRIC, name, time, "", location.toLowerCase(), "not infected" };      // default everyone is not infected.
 
         Thread thread = new Thread(new Runnable() {
 
@@ -340,8 +340,14 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         
     }
 
-    //** COMMENT DOCUMENTATION */
-
+    /**
+     * notifyCheckIn method callback to give feedback to client that check in is successful.
+     * @param NRIC String NRIC of client.
+     * @param name String name of client.
+     * @param location String location of check in.
+     * @param time String time of check in.'yyyy-MM-dd'T'HH:mm:ss' format.
+     * @throws RemoteException
+     */
     private void notifyCheckIn(String NRIC, String name, String location, String time) {
         try {
             SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn(NRIC, name, location, time);
@@ -365,7 +371,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
-     * notifyCheckout method callback to give feedback to client that check out is successful.
+     * notifyCheckOut method callback to give feedback to client that check out is successful.
      * @param NRIC String NRIC of client.
      * @param name String name of client.
      * @param location String location of check out.

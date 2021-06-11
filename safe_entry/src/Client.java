@@ -26,8 +26,8 @@ import java.util.Scanner;
 */
 public class Client extends java.rmi.server.UnicastRemoteObject implements RemoteClientInterface {
 
-    final int port = 1099;                 // port used for rmi
-    final String host = "localhost";       // network address of server
+    final int PORT = 1099;                 // port used for rmi
+    final String HOST = "localhost";       // network address of server
     private boolean serverAlive = false;
 
     public Client() throws RemoteException {
@@ -40,13 +40,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      */
     public void run() {
         int choose = 0;
-        String NRIC = "S1234567B";
-        String name = "Bob";
+        String NRIC = "S1234567A";
+        String name = "Alice";
         String location = "NYP";
         try {
 
             Client client = new Client();
-            String rmi = "rmi://" + host + ":" + port + "/database";    // server binded to address ending with /database
+            final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
             System.out.println("choose. 1(check in) 2(check out) 3(update)");
@@ -55,7 +55,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
             
 
-            // * !TODO: family checkin and checkout */
+            //TODO: family checkin and checkout
 
             if (choose == 1) {
                 /** 
@@ -66,12 +66,12 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     @Override
                     public void run() {
                         try {
-                            database.setRemoteClientState(client, NRIC);
+                            database.setRemoteClientState(client, NRIC);        // add client remote object to server state
                             database.checkIn(NRIC, name, location, client);
                         } catch (RemoteException re) {
                             re.printStackTrace();
                         }
-                        System.out.println("completed checkin");
+                        //System.out.println("completed checkin");
 
                     }
 
@@ -82,14 +82,16 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 /** 
                  * check out
                 */
-                database.checkOut(NRIC, name, location);
-                System.out.println("completed checkout");
+                database.checkOut(NRIC, name, location.toLowerCase());
+                //System.out.println("completed checkout");
                 
                 
             } else if (choose == 3) {
+                
                 /** 
                  * For officer to update covid location
-                */
+                 * TODO: set location to lowercase.
+                 */
                 database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
                 System.out.println("completed update");
             }
@@ -99,14 +101,18 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         } catch (RemoteException re) {
             System.out.println(re);
             System.out.println("\nRetrying...\n");
+            /**
+             * If check out fail due to server failure, will try to invoke remote check out method again
+             * until the server comes back alive. Then add the client remote object to server state.
+             */
             if (choose == 2) {
                 try {
                     Client client = new Client();
-                    String rmi = "rmi://" + host + ":" + port + "/database";    // server binded to address ending with /database
+                    String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
                     Database database = (Database) Naming.lookup(rmi);
                     database.setRemoteClientState(client, NRIC);
                 } catch (RemoteException e) {
-                    System.out.println("\nretry failed, pleas check out again\n");
+                    System.out.println("\nretry failed, please check out again\n");
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (NotBoundException e) {
