@@ -28,7 +28,6 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
     final int PORT = 1099;                 // port used for rmi
     final String HOST = "localhost";       // network address of server
-    private boolean serverAlive = false;
 
     public Client() throws RemoteException {
         // super();
@@ -70,6 +69,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                             database.checkIn(NRIC, name, location, client);
                         } catch (RemoteException re) {
                             re.printStackTrace();
+                            System.out.println("\nPlease try check in again.\n");
                         }
                         //System.out.println("completed checkin");
 
