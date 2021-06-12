@@ -1,6 +1,5 @@
-
 /*
- * Database interface
+ * SafeEntryDatabase
  * 
  * CSC 3004 lab assignment
  * 
@@ -8,7 +7,8 @@
  * 
  * submission date: 18 june 2021 
  * 
-*/
+ */
+
 import java.rmi.Remote;
 
 /**

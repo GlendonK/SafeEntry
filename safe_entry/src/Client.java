@@ -1,5 +1,5 @@
 /*
- * Client
+ * SafeEntryDatabase
  * 
  * CSC 3004 lab assignment
  * 
@@ -7,7 +7,7 @@
  * 
  * submission date: 18 june 2021 
  * 
-*/
+ */
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -25,6 +25,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     final private int PORT = 1099;                 // port used for rmi
     final private String HOST = "localhost";       // network address of server
     private boolean isAlive = false;
+    private boolean isCheckServerThreadRunning = false;
 
     public Client() throws RemoteException {
         // super();
@@ -56,25 +57,17 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 /** 
                  * check in 
                 */
-                Thread thread = new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            database.setRemoteClientState(client, NRIC);        // add client remote object to server state
-                            database.checkIn(NRIC, name, location);
-                            checkServerThread(database, NRIC);                  // starts checking every 5 secs if server alive
-                            System.out.println("\ndone checking in line ...");
-                        } catch (RemoteException re) {
-                            re.printStackTrace();
-                            System.out.println("\nPlease try check in again.\n");
-                        }
-                        //System.out.println("completed checkin");
-                    }
-
-                });
-                thread.start();
-
+                try {
+                    database.setRemoteClientState(client, NRIC);        // add client remote object to server state
+                    database.checkIn(NRIC, name, location);
+                    checkServerThread(database, NRIC);                  // starts checking every 5 secs if server alive
+                    System.out.println("\ndone checking in line ...");
+                } catch (RemoteException re) {
+                    re.printStackTrace();
+                    System.out.println("\nPlease try check in again.\n");
+                }
+                //System.out.println("completed checkin");
+        
             } else if (choose == 2) {
                 /** 
                  * check out
@@ -211,11 +204,25 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
             @Override
             public void run() {
+                System.out.println("\nA new check server thread: " + Thread.currentThread().getName() +"\n");
+                isCheckServerThreadRunning = true;
                 checkServer(database, NRIC);                
             }
             
         });
-        thread.start();
+        if(isCheckServerThreadRunning == false) {
+            thread.start();
+        } else if(isCheckServerThreadRunning == true) {
+            System.out.println("\nA check server thread BEING killed: " + thread.getName() +"\n");
+            thread.interrupt();
+            isCheckServerThreadRunning = false;
+            checkServerThread(database, NRIC);
+        }
+
+        if (thread.isInterrupted()) {
+            System.out.println("\nA check server thread IS killed\n");
+        }
+        
     }
 
     /**
@@ -272,7 +279,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     @Override
     public void read(List<String[]> data) throws RemoteException {
         for (String[] row : data) {
-            System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
+            System.out.println(" | " + row[0] + " | " + row[1] + " | " + row[2] + " | " + row[3] + " | " + row[4] + " | " + row[5] + " | ");
+
         }
         
     }
@@ -284,7 +292,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     @Override
     public void readClient(List<String[]> data) throws RemoteException {
         for (String[] row : data) {
-            System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
+            System.out.println(" | " + row[0] + " | " + row[1] + " | " + row[2] + " | " + row[3] + " | " + row[4] + " | " + row[5] + " | ");
         }        
     }
     

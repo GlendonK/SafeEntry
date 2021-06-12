@@ -1,5 +1,5 @@
 /*
- * RemoteClientInterface
+ * SafeEntryDatabase
  * 
  * CSC 3004 lab assignment
  * 
@@ -7,7 +7,7 @@
  * 
  * submission date: 18 june 2021 
  * 
-*/
+ */
 
 /**
  * RemoteClientInterface is used for server to callback to client.
