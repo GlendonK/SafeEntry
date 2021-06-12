@@ -17,6 +17,7 @@ import java.rmi.RemoteException;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -33,6 +34,9 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
     }
 
+    ArrayList<List<String>> info = new ArrayList<List<String>>();
+
+
     /**
      * method to start asking user for input.
      */
@@ -47,6 +51,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             System.out.println("choose. 1(check in) 2(check out) 3(update) 4(family check in) 5(family check out)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
+
 
             // * !TODO: family checkin and checkout */
 
@@ -87,22 +92,31 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                  * family check in
                  */
                 // need scanner inputs with loops for multiple entries
-                HashMap<String, List<String>> info = new HashMap<String, List<String>>();
-                List<String> user1 = new ArrayList<String>();
-                List<String> user2 = new ArrayList<String>();
-                List<String> user3 = new ArrayList<String>();
-                user1.add("S1234567F");
-                user1.add("Aloy");
-                user1.add("nyp");
-                user2.add("S1234567G");
-                user2.add("Glen");
-                user2.add("nyp");
-                user3.add("S1234567H");
-                user3.add("CaoQi");
-                user3.add("nyp");
-                info.put("S1234567F",user1);
-                info.put("S1234567G",user2);
-                info.put("S1234567H",user3);
+                System.out.print("How many users are you checking in for?");  
+                int numberOfUsers = scan.nextInt();  
+
+                String dupe = scan.nextLine(); 
+                
+                for(int i=0;i<numberOfUsers;i++)
+                {   
+
+                    List<String> user = new ArrayList<String>();
+                    System.out.print("Please input NRIC:");  
+                    String nric = scan.nextLine(); 
+                    user.add(nric);
+
+                    System.out.print("Please input Name:");  
+                    String name = scan.nextLine();   
+                    user.add(name);
+
+                    System.out.print("Please input Location:");  
+                    String location = scan.nextLine();   
+                    user.add(location);
+
+                    info.add(user);
+
+
+                }
                 System.out.println(info);
                 database.familyCheckIn(info, this);
                 System.out.println("completed update");
@@ -112,27 +126,45 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
              * family check in
              */
             // need scanner inputs with loops for multiple entries
-            HashMap<String, List<String>> info = new HashMap<String, List<String>>();
-            List<String> user1 = new ArrayList<String>();
-            List<String> user2 = new ArrayList<String>();
-            List<String> user3 = new ArrayList<String>();
-            user1.add("S1234567F");
-            user1.add("Aloy");
-            user1.add("nyp");
-            user2.add("S1234567G");
-            user2.add("Glen");
-            user2.add("nyp");
-            user3.add("S1234567H");
-            user3.add("CaoQi");
-            user3.add("nyp");
-            info.put("S1234567F",user1);
-            info.put("S1234567G",user2);
-            info.put("S1234567H",user3);
+
+            if(info.isEmpty()){
+            System.out.print("How many users are you checking out for?");  
+            int numberOfUsers = scan.nextInt();  
+            ArrayList<List<String>> info = new ArrayList<List<String>>();
+            
+            String dupe = scan.nextLine(); 
+                
+            for(int i=0;i<numberOfUsers;i++)
+            {   
+
+                List<String> user = new ArrayList<String>();
+                System.out.print("Please input NRIC:");  
+                String nric = scan.nextLine(); 
+                user.add(nric);
+
+                System.out.print("Please input Name:");  
+                String name = scan.nextLine();   
+                user.add(name);
+
+                System.out.print("Please input Location:");  
+                String location = scan.nextLine();   
+                user.add(location);
+
+                info.add(user);
+
+
+            }
+
             System.out.println(info);
             database.familyCheckOut(info);
             System.out.println("completed update");
         
+            }else{
+                System.out.println(info);
+                database.familyCheckOut(info);
+                System.out.println("completed update");
             }
+        }
         } catch (MalformedURLException urle) {
             urle.printStackTrace();
         } catch (RemoteException re) {

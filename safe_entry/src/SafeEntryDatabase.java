@@ -25,6 +25,7 @@ import com.opencsv.exceptions.CsvException;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -108,7 +109,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     @Override
-    public void familyCheckIn(HashMap<String, List<String>> info,RemoteClientInterface remote ) {
+    public void familyCheckIn(ArrayList<List<String>> info,RemoteClientInterface remote ) {
 
 
         Thread thread = new Thread(new Runnable() {
@@ -116,31 +117,27 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             @Override
             public void run() {
                 try {
+                    mutex.acquire();  
 
-                    int index = 0;
                     final String time = LocalDateTime.now().toString();
                     CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH, true)); 
 
 
-
-                    for (String key : info.keySet()) {
-                    String nric = info.get(key).get(0);
-                    String name = info.get(key).get(1);
-                    String location = info.get(key).get(2);
-                    System.out.println(info);
-                    System.out.println(nric);
+                    for(int i=0;i<info.size();i++)
+                    {                        
+                        String nric = info.get(i).get(0);
+                        String name = info.get(i).get(1);
+                        String location = info.get(i).get(2);
                     
-                        if(index==0)
+                        if(i==0)
                         {
 
                             setRemoteClient(remote, nric, name, location, time);
                             System.out.println("Checking In...");
                             String line1[] = {nric, name, time, "", location, "not infected",nric };
                             writer.writeNext(line1);
-                            index = 1;
                         
                         }
-
                         else
                         {
 
@@ -158,6 +155,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     e.printStackTrace();
                     System.out.println(e);
+                }catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();        // release the semaphore for other threads to use.
                 }
 
             }
@@ -259,7 +261,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
 
     @Override
-    public void familyCheckOut(HashMap<String, List<String>> info) {
+    public void familyCheckOut(ArrayList<List<String>> info) {
 
         Thread thread = new Thread(new Runnable() {
 
@@ -275,15 +277,17 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     List<String[]> allData = csvReader.readAll();
 
-                    int i = 0;
-
+                    String delegateNRIC = "";
+                    String delegateName = "";
+                    String delegateLocation = "";
                     /**
                      * check if NRIC, name and location then write the check out time.
                      */
-                    for (String key : info.keySet()) {
-                        String nric = info.get(key).get(0);
-                        String name = info.get(key).get(1);
-                        String location = info.get(key).get(2);
+                    for(int i=0;i<info.size();i++)
+                    {                        
+                        String nric = info.get(i).get(0);
+                        String name = info.get(i).get(1);
+                        String location = info.get(i).get(2);
                         System.out.println(info);
                         System.out.println(nric);
                        
@@ -302,14 +306,23 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             writer.writeAll(allData);
                                             writer.flush();
                                             writer.close();
-                                            if(i == 0){
-                                                notifyCheckout(nric, name, location, row[3]);
+                                            if(i==0)
+                                            {
+                                                delegateNRIC = nric;
+                                                delegateName = name;
+                                                delegateLocation = location;
                                                 System.out.println("Checked out" + nric + " " + name + " at " + location
                                                 + " at " + row[3]);
                                                 System.out.println(Thread.currentThread().getName());
-                                                i++;
                                             }
-                                            else{
+                                            else if(i == info.size()-1)                                               
+                                            {   
+                                                notifyCheckout(delegateNRIC, delegateName, delegateLocation, row[3]);
+                                                System.out.println("Checked out" + delegateNRIC + " " + delegateName + " at " + delegateLocation
+                                                + " at " + row[3]);
+                                            }
+                                            else
+                                            {
                                                 System.out.println("Checked out" + nric + " " + name + " at " + location
                                                 + " at " + row[3]);
                                             }
