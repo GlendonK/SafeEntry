@@ -22,6 +22,7 @@ import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -315,11 +316,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
-     * For client to see all of database
+     * For client to see all of database.
+     * This method will have a callback to client with all the databse entries.
      * @TODO: pretty print this
      */
     @Override
-    public void read() {
+    public void read(RemoteClientInterface remote) {
 
         Thread thread = new Thread(new Runnable() {
 
@@ -332,14 +334,21 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     List<String[]> allData = csvReader.readAll();
 
+                    List<String[]> databaseEntries = new ArrayList<>();
+
                     for (String[] col : allData) {
 
-                        System.out.println(
-                                col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+                        // System.out.println(
+                        //         col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+
+                        String[] row = {col[0], col[1], col[2], col[3], col[4], col[5]};
+
+                        databaseEntries.add(row);
 
                     }
 
                     csvReader.close();
+                    remote.read(databaseEntries);
 
                 } catch (IOException e) {
                     System.out.println(e);

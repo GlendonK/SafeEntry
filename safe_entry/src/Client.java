@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -44,7 +45,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
-            System.out.println("choose. 1(check in) 2(check out) 3(update)");
+            System.out.println("choose. 1(check in) 2(check out) 3(update) 4(read)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
@@ -88,6 +89,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                  */
                 database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
                 System.out.println("completed update");
+            } else if (choose == 4) {
+                database.read(this);
             }
 
         } catch (MalformedURLException urle) {
@@ -164,7 +167,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      */
     @Override
     public void notifyCovid(String location, String from, String to) throws RemoteException {
-        System.out.println("Possible Exposure at " + location + " from " + from + " to " + to);
+        System.out.println("\nPossible Exposure at " + location + " from " + from + " to " + to);
 
     }
 
@@ -231,6 +234,18 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
         
     }
+    
+    /**
+     * call back function to print all the database entries.
+     * @param List<String[]>
+     */
+    @Override
+    public void read(List<String[]> data) throws RemoteException {
+        for (String[] row : data) {
+            System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
+        }
+        
+    }
 
     public static void main(String[] args) {
         try {
@@ -242,6 +257,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             e.printStackTrace();
         }
     }
+
+    
 
     
 
