@@ -15,6 +15,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 /**
  * Client class is to start the user and officer interaction with the system.
@@ -34,6 +35,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     /**
      * method to start asking user for input.
      */
+    ArrayList<List<String>> info = new ArrayList<List<String>>();
+
     public void runUser() {
         int choose = 0;
         String NRIC = "S1234567A";
@@ -45,7 +48,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
-            System.out.println("choose. 1(check in) 2(check out) 3(read user history)");
+            System.out.println("choose. 1(check in) 2(check out) 3(read user history) 4(family check in) 5(family check out)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
@@ -87,7 +90,89 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                  * read client data
                  */
                 database.readUserOnly(NRIC);
-            }
+            
+            } else if (choose == 4){
+                 /**
+                 * family check in
+                 */
+                // need scanner inputs with loops for multiple entries
+                System.out.print("How many users are you checking in for?");  
+                int numberOfUsers = scan.nextInt();  
+
+                String dupe = scan.nextLine(); 
+                
+                for(int i=0;i<numberOfUsers;i++)
+                {   
+
+                    List<String> user = new ArrayList<String>();
+                    System.out.print("Please input NRIC:");  
+                    String nric = scan.nextLine(); 
+                    user.add(nric);
+
+                    System.out.print("Please input Name:");  
+                    String Name = scan.nextLine();   
+                    user.add(Name);
+
+                    System.out.print("Please input Location:");  
+                    String Location = scan.nextLine();   
+                    user.add(Location);
+
+                    info.add(user);
+
+                    if(i==0){
+                        database.setRemoteClientState(client, nric);
+                    }
+
+
+                }
+                System.out.println(info);
+                database.familyCheckIn(info, this);
+                System.out.println("completed update");
+            
+            } else if ( choose == 5){
+                /**
+             * family check in
+             */
+            // need scanner inputs with loops for multiple entries
+
+            if(info.isEmpty()){
+                System.out.print("How many users are you checking out for?");  
+                int numberOfUsers = scan.nextInt();  
+                ArrayList<List<String>> info = new ArrayList<List<String>>();
+                
+                String dupe = scan.nextLine(); 
+                    
+                for(int i=0;i<numberOfUsers;i++)
+                {   
+    
+                    List<String> user = new ArrayList<String>();
+                    System.out.print("Please input NRIC:");  
+                    //NRIC = scan.nextLine(); 
+                    //user.add(NRIC);
+    
+                    System.out.print("Please input Name:");  
+                    //name = scan.nextLine();   
+                    //user.add(name);
+    
+                    System.out.print("Please input Location:");  
+                    //location = scan.nextLine();   
+                    //user.add(location);
+    
+                    info.add(user);
+    
+    
+                }
+    
+                System.out.println(info);
+                database.familyCheckOut(info);
+                System.out.println("completed update");
+            
+                }else{
+                    System.out.println(info);
+                    database.familyCheckOut(info);
+                    System.out.println("completed update");
+                }
+            } 
 
         } catch (MalformedURLException urle) {
             urle.printStackTrace();
@@ -286,6 +371,17 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         for (String[] row : data) {
             System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
         }        
+    }
+
+    public static void main(String[] args) {
+        try {
+            Client client = new Client();
+            while (true) {
+                client.runUser();;
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
     
 }

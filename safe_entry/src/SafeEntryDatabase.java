@@ -215,6 +215,172 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
     }
 
+    @Override
+    public void familyCheckIn(ArrayList<List<String>> info,RemoteClientInterface remote ) {
+
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    mutex.acquire();  
+
+                    final String time = LocalDateTime.now().toString();
+                    CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH, true)); 
+
+
+                    for(int i=0;i<info.size();i++)
+                    {                        
+                        String nric = info.get(i).get(0);
+                        String name = info.get(i).get(1);
+                        String location = info.get(i).get(2);
+                    
+                        if(i==0)
+                        {
+
+                            System.out.println("Checking In...");
+                            String line1[] = {nric, name, time, "", location, "not infected",nric };
+                            writer.writeNext(line1);
+                        
+                        }
+                        else
+                        {
+                            
+                            String line1[] = {nric, name, time, "", location, "not infected"};                  
+                            writer.writeNext(line1);
+
+                        }
+                    
+                    }
+                    writer.close();
+                    return;
+
+                
+             } catch (IOException e) {
+
+                    e.printStackTrace();
+                    System.out.println(e);
+                }catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();        // release the semaphore for other threads to use.
+                }
+
+            }
+
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
+        return;
+
+    }
+
+
+    @Override
+    public void familyCheckOut(ArrayList<List<String>> info) {
+
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+
+                    mutex.acquire();
+
+                    FileReader fileReader = new FileReader(CSV_PATH);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    String delegateNRIC = "";
+                    String delegateName = "";
+                    String delegateLocation = "";
+                    /**
+                     * check if NRIC, name and location then write the check out time.
+                     */
+                    for(int i=0;i<info.size();i++)
+                    {                        
+                        String nric = info.get(i).get(0);
+                        String name = info.get(i).get(1);
+                        String location = info.get(i).get(2);
+                        System.out.println(info);
+                        System.out.println(nric);
+                       
+                        for (String[] row : allData) {
+                            System.out.println("....");
+                            if (row[0].equals(nric)) {
+                                System.out.println(nric);
+                                if (row[1].equals(name)) {
+                                    System.out.println(name);
+                                    if (row[4].equals(location)) {
+                                        System.out.println(location);
+                                        if (row[3].equals("") || row[3].equals(null)) {
+                                            row[3] = LocalDateTime.now().toString();
+
+                                            CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
+                                            writer.writeAll(allData);
+                                            writer.flush();
+                                            writer.close();
+                                            if(i==0)
+                                            {
+                                                delegateNRIC = nric;
+                                                delegateName = name;
+                                                delegateLocation = location;
+                                                System.out.println("Checked out" + nric + " " + name + " at " + location
+                                                + " at " + row[3]);
+                                                System.out.println(Thread.currentThread().getName());
+                                            }
+                                            else if(i == info.size()-1)                                               
+                                            {   
+                                                notifyCheckOut(delegateNRIC, delegateName, delegateLocation, row[3]);
+                                                System.out.println("Checked out" + delegateNRIC + " " + delegateName + " at " + delegateLocation
+                                                + " at " + row[3]);
+                                            }
+                                            else
+                                            {
+                                                System.out.println("Checked out" + nric + " " + name + " at " + location
+                                                + " at " + row[3]);
+                                            }
+
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
+                }
+
+            }
+
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+
+            System.out.println(e);
+        }
+
+        return;
+
+    }
+
     /**
      * updateInfectedLocation is called by officer to notify all user if they had contact with 
      * an infected individual.

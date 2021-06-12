@@ -10,6 +10,8 @@
  * 
 */
 import java.rmi.Remote;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Database interface extends the Remote interface. Database interface is used
@@ -20,6 +22,10 @@ public interface Database extends Remote {
     public void checkIn(String NRIC, String name, String location) throws java.rmi.RemoteException;
 
     public void checkOut(String NRIC, String name, String location) throws java.rmi.RemoteException;
+
+    public void familyCheckIn(ArrayList<List<String>> info, RemoteClientInterface remote)throws java.rmi.RemoteException;
+
+    public void familyCheckOut(ArrayList<List<String>> info)throws java.rmi.RemoteException;
 
     public void updateInfectedLocation(String location, String checkInTime, String checkOutTime)
             throws java.rmi.RemoteException;
