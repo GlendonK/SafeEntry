@@ -34,7 +34,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     /**
      * method to start asking user for input.
      */
-    public void run() {
+    public void runUser() {
         int choose = 0;
         String NRIC = "S1234567A";
         String name = "BoB";
@@ -45,7 +45,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
-            System.out.println("choose. 1(check in) 2(check out) 3(update) 4(read client) 5(read all)");
+            System.out.println("choose. 1(check in) 2(check out) 3(read user history)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
@@ -83,22 +83,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 //System.out.println("completed checkout");
                 
             } else if (choose == 3) {
-                
-                /** 
-                 * For officer to update covid location.
-                 */
-                database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
-                System.out.println("completed update");
-            } else if (choose == 4) {
                 /**
                  * read client data
                  */
                 database.readUserOnly(NRIC);
-            } else if (choose == 5) {
-                /**
-                 * for officer to read all database entries.
-                 */
-                database.readAll(this);
             }
 
         } catch (MalformedURLException urle) {
@@ -127,6 +115,39 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
         } catch (NotBoundException nbe) {
             nbe.printStackTrace();
+        }
+    }
+
+    public void runOfficer() {
+        int choose = 0;
+        try {
+            Client client = this;
+            final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
+            Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
+
+            System.out.println("choose. 1(set location and time of infected), 2(read all entries)");
+            Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
+            choose = scan.nextInt();
+
+            if (choose == 1) {
+                /** 
+                 * For officer to update covid location.
+                 */
+                database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
+                System.out.println("completed update");
+            } else if (choose == 2) {
+                /**
+                 * for officer to read all database entries.
+                 */
+                database.readAll(this);
+            }
+
+        } catch (RemoteException re) {
+            re.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -212,7 +233,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     isAlive = false;
                     //Thread.sleep(5000);
                     
-                } else {
+                } else if(database.isAlive() == true) {
                     isAlive = true;
                     System.out.println("Server is Alive");
                     Thread.sleep(5000);
@@ -266,20 +287,5 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
         }        
     }
-
-    public static void main(String[] args) {
-        try {
-            Client client = new Client();
-            while (true) {
-                client.run();
-            }
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
     
-
-    
-
 }
