@@ -321,7 +321,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @TODO: pretty print this
      */
     @Override
-    public void read(RemoteClientInterface remote) {
+    public void readAll(RemoteClientInterface remote) {
 
         Thread thread = new Thread(new Runnable() {
 
@@ -362,6 +362,51 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
         return;
 
+    }
+
+    @Override
+    public void readUserOnly(String NRIC) throws RemoteException {
+        
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    FileReader fileReader = new FileReader(CSV_PATH);
+
+                    CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
+
+                    List<String[]> allData = csvReader.readAll();
+
+                    List<String[]> databaseEntries = new ArrayList<>();
+
+                    for (String[] col : allData) {
+
+                        // System.out.println(
+                        //         col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+
+                        if (col[0].equals(NRIC)) {
+                            String[] row = {col[0], col[1], col[2], col[3], col[4], col[5]};
+
+                            databaseEntries.add(row);
+                        }
+
+                    }
+
+                    csvReader.close();
+                    SafeEntryDatabase.clientRemoteObjState.get(NRIC).readClient(databaseEntries);
+
+                } catch (IOException e) {
+                    System.out.println(e);
+                } catch (CsvException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+        thread.start();
+
+        return;
     }
 
     /**

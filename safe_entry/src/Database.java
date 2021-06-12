@@ -28,6 +28,8 @@ public interface Database extends Remote {
 
     public boolean isAlive() throws java.rmi.RemoteException;
 
-    public void read(RemoteClientInterface remote) throws java.rmi.RemoteException;
+    public void readAll(RemoteClientInterface remote) throws java.rmi.RemoteException;
+
+    public void readUserOnly(String NRIC) throws java.rmi.RemoteException;
 
 }

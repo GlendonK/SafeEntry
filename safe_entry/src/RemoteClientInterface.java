@@ -25,4 +25,6 @@ public interface RemoteClientInterface extends Remote {
 
     public void read(List<String[]> data) throws java.rmi.RemoteException;
 
+    public void readClient(List<String[]> data) throws java.rmi.RemoteException;
+
 }

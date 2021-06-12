@@ -36,8 +36,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      */
     public void run() {
         int choose = 0;
-        String NRIC = "S1234567B";
-        String name = "Bob";
+        String NRIC = "S1234567A";
+        String name = "BoB";
         String location = "NYP";
         try {
 
@@ -45,7 +45,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
-            System.out.println("choose. 1(check in) 2(check out) 3(update) 4(read)");
+            System.out.println("choose. 1(check in) 2(check out) 3(update) 4(read client) 5(read all)");
             Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
             choose = scan.nextInt();
 
@@ -90,7 +90,15 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
                 System.out.println("completed update");
             } else if (choose == 4) {
-                database.read(this);
+                /**
+                 * read client data
+                 */
+                database.readUserOnly(NRIC);
+            } else if (choose == 5) {
+                /**
+                 * for officer to read all database entries.
+                 */
+                database.readAll(this);
             }
 
         } catch (MalformedURLException urle) {
@@ -168,6 +176,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     @Override
     public void notifyCovid(String location, String from, String to) throws RemoteException {
         System.out.println("\nPossible Exposure at " + location + " from " + from + " to " + to);
+        System.out.println("\nPlease pay attention to your heath for 14 days from " + from + ". Please see a doctor if feeling ill\n");
 
     }
 
@@ -245,6 +254,17 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
         }
         
+    }
+    
+    /**
+     * call back function to print only user's entries from the database entries.
+     * @param List<String[]>
+     */
+    @Override
+    public void readClient(List<String[]> data) throws RemoteException {
+        for (String[] row : data) {
+            System.out.println(row[0] + ", " + row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4] + ", " + row[5]);
+        }        
     }
 
     public static void main(String[] args) {
