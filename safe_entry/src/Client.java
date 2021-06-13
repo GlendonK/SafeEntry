@@ -55,9 +55,6 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             Scanner scan = new Scanner(System.in);      // cannot close as its constantly being used.
             choose = scan.nextInt();
 
-            
-            //TODO: family checkin and checkout
-
             if (choose == 1) {
                 /** 
                  * check in 
