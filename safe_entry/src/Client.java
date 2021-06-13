@@ -13,8 +13,10 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 
 /**
  * Client class is to start the user and officer interaction with the system.
@@ -27,6 +29,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     private boolean isAlive = false;
     private boolean isCheckServerThreadRunning = false;
 
+    private static String NRIC;
+    private static String name;
+    private static String location;
+
     public Client() throws RemoteException {
         // super();
 
@@ -37,17 +43,15 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      */
     public void runUser() {
         int choose = 0;
-        String NRIC = "S1234567A";
-        String name = "BoB";
-        String location = "NYP";
+        
         try {
 
             Client client = this;
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
             
-            System.out.println("choose. 1(check in) 2(check out) 3(read user history)");
-            Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
+            System.out.println("choose. 1(check in) 2(check in with family) 3(check out) 4(read user history)");
+            Scanner scan = new Scanner(System.in);      // cannot close as its constantly being used.
             choose = scan.nextInt();
 
             
@@ -57,6 +61,16 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 /** 
                  * check in 
                 */
+                System.out.println("Enter Location: ");
+                Scanner scanner = new Scanner(System.in);
+                location = scanner.nextLine();
+
+                System.out.println("Enter Your NRIC: ");
+                NRIC = scanner.nextLine();
+
+                System.out.println("Enter Your Name");
+                name = scanner.nextLine();
+
                 try {
                     database.setRemoteClientState(client, NRIC);        // add client remote object to server state
                     database.checkIn(NRIC, name, location);
@@ -69,20 +83,80 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                     System.out.println("\nPlease try check in again.\n");
                 }
                 //System.out.println("completed checkin");
+                //scanner.close();
         
             } else if (choose == 2) {
+                List<String> NRICList = new ArrayList<>();
+                List<String> nameList = new ArrayList<>();
+
+                System.out.println("location: ");
+                Scanner scanner = new Scanner(System.in);
+                location = scanner.nextLine();
+                
+
+                System.out.println("Number of people: ");
+                int pax = scanner.nextInt();
+
+                for (int i = 0; i<=pax; i++) {
+                    if (i == 0) {
+
+                        /**
+                         * check in the user.
+                         * the user who initiate the check in will check out for the familiy.
+                         */
+                        
+                        System.out.println("Your NRIC: ");
+                        Scanner scannerUser = new Scanner(System.in);
+                        NRIC = scannerUser.nextLine();
+                        NRICList.add(NRIC);                
+
+                        System.out.println("Your Name: ");
+                        name = scannerUser.nextLine();
+                        nameList.add(name);
+
+                        database.setRemoteClientState(client, NRIC);        // add client remote object to server state
+                        
+                        
+                    } else if (i >0 ) {
+                        /**
+                         * check in family members.
+                         */
+                        System.out.println("Family member " + i +" NRIC: ");
+                        Scanner famScanner = new Scanner(System.in);
+                        String famNRIC = famScanner.nextLine();
+                        NRICList.add(famNRIC);
+                        
+
+                        System.out.println("Family member " + i +" Name: ");
+                        String famName = famScanner.nextLine();
+                        nameList.add(famName);
+
+                    }
+
+                }
+                database.familyCheckIn(NRICList, nameList, location);
+
+                if (isCheckServerThreadRunning == false) {
+                    checkServerThread(database, NRIC);              // starts checking every 5 secs if server alive
+                    isCheckServerThreadRunning = true;
+                }
+
+                // paxInput.close();
+                // locaInput.close();
+                //scanner.close();
+                
+            } else if (choose == 3) {
                 /** 
                  * check out
                 */
                 database.checkOut(NRIC, name, location.toLowerCase());
-                //System.out.println("completed checkout");
-                
-            } else if (choose == 3) {
+            } else if (choose == 4) {
                 /**
                  * read client data
                  */
                 database.readUserOnly(NRIC);
             }
+            //scan.close();
 
         } catch (MalformedURLException urle) {
             urle.printStackTrace();
@@ -93,7 +167,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
              * If check out fail due to server failure, will try to invoke remote check out method again
              * until the server comes back alive. Then add the client remote object to server state.
              */
-            if (choose == 2) {
+            if (choose == 3) {
                 try {
                     String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
                     Database database = (Database) Naming.lookup(rmi);
@@ -206,7 +280,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
             @Override
             public void run() {
-                System.out.println("\nA new check server thread: " + Thread.currentThread().getName() +"\n");
+                //System.out.println("\nA new check server thread: " + Thread.currentThread().getName() +"\n");
                 checkServer(database, NRIC);                
             }
             
@@ -226,14 +300,14 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
         while(true){
             try {
-                System.out.println("check server thread: " + Thread.currentThread().getName());
+                //System.out.println("check server thread: " + Thread.currentThread().getName());
                 if (database.isAlive() != true) {
                     isAlive = false;
                     //Thread.sleep(5000);
                     
                 } else if(database.isAlive() == true) {
                     isAlive = true;
-                    System.out.println("Server is Alive");
+                    //System.out.println("Server is Alive");
                     Thread.sleep(5000);
                 }
             } catch (RemoteException e) {

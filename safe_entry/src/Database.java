@@ -10,6 +10,7 @@
  */
 
 import java.rmi.Remote;
+import java.util.List;
 
 /**
  * Database interface extends the Remote interface. Database interface is used
@@ -31,5 +32,7 @@ public interface Database extends Remote {
     public void readAll(RemoteClientInterface remote) throws java.rmi.RemoteException;
 
     public void readUserOnly(String NRIC) throws java.rmi.RemoteException;
+
+    public void familyCheckIn(List<String> NRICList, List<String> name, String location) throws java.rmi.RemoteException;
 
 }

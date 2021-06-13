@@ -85,7 +85,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
         //     e.printStackTrace();
         // }
 
-        final String line1[] = { NRIC, name, time, "", location.toLowerCase(), "not infected" };      // default everyone is not infected.
+        final String line1[] = { NRIC, name, time, "", location.toLowerCase(), "not infected", NRIC };      // default everyone is not infected.
 
         Thread thread = new Thread(new Runnable() {
 
@@ -99,6 +99,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
                     System.out.println(Thread.currentThread().getName());
+                    
 
                     /* test semaphore */
                     // for (int i = 0; i < 10; i++) {
@@ -108,7 +109,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
-                    notifyCheckIn(NRIC, name, location, time);
+                    notifyCheckIn(NRIC, name, location.toLowerCase(), time);
                     return;
 
                 } catch (IOException e) {
@@ -116,7 +117,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     e.printStackTrace();
                     System.out.println(e);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 } finally {
                     mutex.release();        // release the semaphore for other threads to use.
@@ -125,6 +125,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             }
 
         });
+        thread.setName("\nCheck In Thread\n");
         thread.start();
         try {
             thread.join();      // wait for thread to end.
@@ -136,7 +137,74 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     }
 
     /**
+     * method to check in with additional users/family.
+     * @param NRICList the list of nric of all the users, the first nric in the list will check in for all. 
+     * @param name the list of name od the users, first of the list is the user name who checks in for all.
+     * @param location the location of check in.
+     * @throws RemoteExceptin
+     */
+    @Override
+    public void familyCheckIn(List<String> NRICList, List<String> name, String location) throws RemoteException {
+        final String time = LocalDateTime.now().toString();
+
+        List<String[]> familyList = new ArrayList<>();
+        for (int i = 0; i<NRICList.size(); i++) {
+            String line1[] = { NRICList.get(i), name.get(i), time, "", location.toLowerCase(), "not infected", NRICList.get(0) };      // default everyone is not infected.
+            familyList.add(line1);
+        }
+
+        Thread thread = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                try {
+                    mutex.acquire();        // only threads holding the semaphore can write to database.
+                    System.out.println("mutex aquired");
+                    
+                    CSVWriter writer = new CSVWriter(
+                            new FileWriter(CSV_PATH, true));
+                    System.out.println(Thread.currentThread().getName());
+
+                    for (int i = 0; i<familyList.size(); i++) {
+                        writer.writeNext(familyList.get(i));    // write the data to the next line   
+                    }
+                    writer.close();
+
+                    /** callback to confirm the check in */
+                    for (int i = 0; i<familyList.size(); i++) {
+                        System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
+                        System.out.println("NAME!: "+familyList.get(i)[1]);
+                        
+                        notifyCheckIn(familyList.get(0)[0], familyList.get(i)[1], location.toLowerCase(), time);
+                    }
+
+                } catch (InterruptedException e) {
+                    System.out.println("Family check in intterupted");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    mutex.release();
+                }
+                
+            }
+            
+        });
+        thread.setName("\nFamily Check In Thread\n");
+        thread.start();
+        try {
+            thread.join();      // wait for thread to end.
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
+        return;
+        
+
+        
+    }
+
+    /**
      * checkOut method is called by client to write the check out time to database.
+     * works with family checkout.
      * @param NRIC String of client NRIC.
      * @param name String of client name.
      * @param location String of client checkout location.
@@ -152,6 +220,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     mutex.acquire();
 
+                    System.out.println("Checking Out");
+
                     FileReader fileReader = new FileReader(CSV_PATH);
 
                     CSVReader csvReader = new CSVReaderBuilder(fileReader).build();
@@ -164,29 +234,26 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                      * check if NRIC, name and location then write the check out time.
                      */
                     for (String[] row : allData) {
-                        System.out.println("....");
-                        if (row[0].equals(NRIC)) {
                             System.out.println(NRIC);
-                            if (row[1].equals(name)) {
                                 System.out.println(name);
                                 if (row[4].equals(location)) {
                                     System.out.println(location);
-                                    if (row[3].equals("") || row[3].equals(null)) {
-                                        row[3] = LocalDateTime.now().toString();
-
-                                        CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
-                                        writer.writeAll(allData);
-                                        writer.flush();
-                                        writer.close();
-                                        notifyCheckOut(NRIC, name, location, row[3]);
-                                        System.out.println("Checked out" + NRIC + " " + name + " at " + location
-                                                + " at " + row[3]);
-                                        System.out.println(Thread.currentThread().getName());
-
-                                    }
+                                    if (row[6].equals(NRIC)) {      // checks the person NRIC who checks in for him/her.
+                                        if (row[3].equals("") || row[3].equals(null)) {
+                                            row[3] = LocalDateTime.now().toString();
+    
+                                            CSVWriter writer = new CSVWriter(new FileWriter(CSV_PATH));
+                                            writer.writeAll(allData);
+                                            writer.flush();
+                                            writer.close();
+                                            notifyCheckOut(NRIC, row[0], row[1], location, row[3]);
+                                            System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
+                                                    + " at " + row[3]);
+                                            System.out.println(Thread.currentThread().getName());
+    
+                                        }
+                                    } 
                                 }
-                            }
-                        }
                         i++;
                     }
 
@@ -468,10 +535,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @param time String time of check out.'yyyy-MM-dd'T'HH:mm:ss' format.
      * @throws RemoteException
      */
-    private void notifyCheckOut(String NRIC, String name, String location, String time) throws RemoteException {
-        SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckOut(NRIC, name, location, time);
+    private void notifyCheckOut(String NRICKey, String NRIC, String name, String location, String time) throws RemoteException {
+        SafeEntryDatabase.clientRemoteObjState.get(NRICKey).confirmCheckOut(NRIC, name, location, time);
         return;
 
     }
+
+    
 
 }
