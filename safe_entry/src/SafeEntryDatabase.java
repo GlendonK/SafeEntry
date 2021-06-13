@@ -452,7 +452,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                         // System.out.println(
                         //         col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
 
-                        if (col[0].equals(NRIC)) {
+                        if (col[6].equals(NRIC)) {
                             String[] row = {col[0], col[1], col[2], col[3], col[4], col[5]};
 
                             databaseEntries.add(row);
