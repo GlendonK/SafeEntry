@@ -60,8 +60,10 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 try {
                     database.setRemoteClientState(client, NRIC);        // add client remote object to server state
                     database.checkIn(NRIC, name, location);
-                    checkServerThread(database, NRIC);                  // starts checking every 5 secs if server alive
-                    System.out.println("\ndone checking in line ...");
+                    if (isCheckServerThreadRunning == false) {
+                        checkServerThread(database, NRIC);              // starts checking every 5 secs if server alive
+                        isCheckServerThreadRunning = true;
+                    }
                 } catch (RemoteException re) {
                     re.printStackTrace();
                     System.out.println("\nPlease try check in again.\n");
@@ -205,23 +207,11 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
             @Override
             public void run() {
                 System.out.println("\nA new check server thread: " + Thread.currentThread().getName() +"\n");
-                isCheckServerThreadRunning = true;
                 checkServer(database, NRIC);                
             }
             
         });
-        if(isCheckServerThreadRunning == false) {
-            thread.start();
-        } else if(isCheckServerThreadRunning == true) {
-            System.out.println("\nA check server thread BEING killed: " + thread.getName() +"\n");
-            thread.interrupt();
-            isCheckServerThreadRunning = false;
-            checkServerThread(database, NRIC);
-        }
-
-        if (thread.isInterrupted()) {
-            System.out.println("\nA check server thread IS killed\n");
-        }
+        thread.start();
         
     }
 
@@ -236,6 +226,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
         while(true){
             try {
+                System.out.println("check server thread: " + Thread.currentThread().getName());
                 if (database.isAlive() != true) {
                     isAlive = false;
                     //Thread.sleep(5000);
