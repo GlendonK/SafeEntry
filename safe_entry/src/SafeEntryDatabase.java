@@ -344,7 +344,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             + " from " + row[2] + " to " + row[3]);
 
                                     // ** callback here */
-                                    notifyClient(row[0], location.toLowerCase(), checkInTime, checkOutTime);
+                                    notifyClient(row[6], row[0], location.toLowerCase(), checkInTime, checkOutTime);
 
                                 }
                             }
@@ -521,8 +521,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @param to String time of infected check out.'yyyy-MM-dd'T'HH:mm:ss' format.
      * @throws RemoteException
      */
-    private void notifyClient(String NRIC, String location, String from, String to) throws RemoteException {
-        SafeEntryDatabase.clientRemoteObjState.get(NRIC).notifyCovid(location, from, to);
+    private void notifyClient(String NRICKey, String NRIC, String location, String from, String to) throws RemoteException {
+        SafeEntryDatabase.clientRemoteObjState.get(NRICKey).notifyCovid(NRIC, location, from, to);
         return;
 
     }

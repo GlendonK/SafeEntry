@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -190,7 +191,7 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     public void runOfficer() {
         int choose = 0;
         try {
-            Client client = this;
+            
             final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
             Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
 
@@ -202,7 +203,21 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
                 /** 
                  * For officer to update covid location.
                  */
-                database.updateInfectedLocation("NYP", "2021-06-07T00:52:52.034223", "2021-06-15T01:52:52.034223");
+
+                System.out.println("Input location: ");
+                Scanner officerInput = new Scanner(System.in);
+                String officerLoc = officerInput.nextLine();
+
+                final String timeExample = LocalDateTime.now().toString();
+                System.out.println("eg: " + timeExample);
+                System.out.println("Input start time (yyy-mm-ddThh:mm:ss): ");
+                String startTme = officerInput.nextLine();
+
+                System.out.println("Input end time (yyy-mm-ddThh:mm:ss): ");
+                String endTime = officerInput.nextLine();
+
+                
+                database.updateInfectedLocation(officerLoc.toLowerCase(), startTme, endTime);
                 System.out.println("completed update");
             } else if (choose == 2) {
                 /**
@@ -264,8 +279,8 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
      * @throws RemoteException
      */
     @Override
-    public void notifyCovid(String location, String from, String to) throws RemoteException {
-        System.out.println("\nPossible Exposure at " + location + " from " + from + " to " + to);
+    public void notifyCovid(String NRIC, String location, String from, String to) throws RemoteException {
+        System.out.println("\n"+ NRIC + " Possible Exposure at " + location + " from " + from + " to " + to);
         System.out.println("\nPlease pay attention to your heath for 14 days from " + from + ". Please see a doctor if feeling ill\n");
 
     }

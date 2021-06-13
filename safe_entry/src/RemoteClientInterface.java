@@ -21,7 +21,7 @@ public interface RemoteClientInterface extends Remote {
 
     public void confirmCheckOut(String NRIC, String name, String location, String time) throws java.rmi.RemoteException;
 
-    public void notifyCovid(String location, String from, String to) throws java.rmi.RemoteException;
+    public void notifyCovid(String NRIC, String location, String from, String to) throws java.rmi.RemoteException;
 
     public void read(List<String[]> data) throws java.rmi.RemoteException;
 
