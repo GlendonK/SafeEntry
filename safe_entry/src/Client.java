@@ -30,208 +30,122 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
     private boolean isAlive = false;
     private boolean isCheckServerThreadRunning = false;
 
-    private static String NRIC;
-    private static String name;
-    private static String location;
+    private String NRIC;
+    private String name;
+    private String location;
+
+    private Database database;
 
     public Client() throws RemoteException {
         // super();
+        final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
+        try {
+            database = (Database) Naming.lookup(rmi);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }          // look for the address of the server
+            
 
     }
 
-    /**
-     * method to start asking user for input.
-     */
-    public void runUser() {
-        int choose = 0;
+    public void userCheckIn(String location, String NRIC, String name) {
+        
+        /** 
+         * check in 
+        */
+        
+
+        try {
+            database.setRemoteClientState(this, NRIC);        // add client remote object to server state
+            database.checkIn(NRIC, name, location);
+            if (isCheckServerThreadRunning == false) {
+                checkServerThread(database, NRIC);              // starts checking every 5 secs if server alive
+                isCheckServerThreadRunning = true;
+            }
+        } catch (RemoteException re) {
+            re.printStackTrace();
+            System.out.println("\nPlease try check in again.\n");
+        }
+    }
+
+    public void userFamCheckIn(String location, int pax, List<String> NRICList, List<String> nameList ) {
         
         try {
+            database.setRemoteClientState(this, NRICList.get(0));        // add client remote object to server state
+            database.familyCheckIn(NRICList, nameList, location);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
-            Client client = this;
-            final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
-            Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
-            
-            System.out.println("choose. 1(check in) 2(check in with family) 3(check out) 4(read user history)");
-            Scanner scan = new Scanner(System.in);      // cannot close as its constantly being used.
-            choose = scan.nextInt();
+        if (isCheckServerThreadRunning == false) {
+            checkServerThread(database, NRICList.get(0));              // starts checking every 5 secs if server alive
+            isCheckServerThreadRunning = true;
+        }
+    }
 
-            if (choose == 1) {
-                /** 
-                 * check in 
-                */
-                System.out.println("Enter Location: ");
-                Scanner scanner = new Scanner(System.in);
-                location = scanner.nextLine();
-
-                System.out.println("Enter Your NRIC: ");
-                NRIC = scanner.nextLine();
-
-                System.out.println("Enter Your Name");
-                name = scanner.nextLine();
-
-                try {
-                    database.setRemoteClientState(client, NRIC);        // add client remote object to server state
-                    database.checkIn(NRIC, name, location);
-                    if (isCheckServerThreadRunning == false) {
-                        checkServerThread(database, NRIC);              // starts checking every 5 secs if server alive
-                        isCheckServerThreadRunning = true;
-                    }
-                } catch (RemoteException re) {
-                    re.printStackTrace();
-                    System.out.println("\nPlease try check in again.\n");
-                }
-                //System.out.println("completed checkin");
-                //scanner.close();
-        
-            } else if (choose == 2) {
-                List<String> NRICList = new ArrayList<>();
-                List<String> nameList = new ArrayList<>();
-
-                System.out.println("location: ");
-                Scanner scanner = new Scanner(System.in);
-                location = scanner.nextLine();
-                
-
-                System.out.println("Number of people: ");
-                int pax = scanner.nextInt();
-
-                for (int i = 0; i<=pax; i++) {
-                    if (i == 0) {
-
-                        /**
-                         * check in the user.
-                         * the user who initiate the check in will check out for the familiy.
-                         */
-                        
-                        System.out.println("Your NRIC: ");
-                        Scanner scannerUser = new Scanner(System.in);
-                        NRIC = scannerUser.nextLine();
-                        NRICList.add(NRIC);                
-
-                        System.out.println("Your Name: ");
-                        name = scannerUser.nextLine();
-                        nameList.add(name);
-
-                        database.setRemoteClientState(client, NRIC);        // add client remote object to server state
-                        
-                        
-                    } else if (i >0 ) {
-                        /**
-                         * check in family members.
-                         */
-                        System.out.println("Family member " + i +" NRIC: ");
-                        Scanner famScanner = new Scanner(System.in);
-                        String famNRIC = famScanner.nextLine();
-                        NRICList.add(famNRIC);
-                        
-
-                        System.out.println("Family member " + i +" Name: ");
-                        String famName = famScanner.nextLine();
-                        nameList.add(famName);
-
-                    }
-
-                }
-                database.familyCheckIn(NRICList, nameList, location);
-
-                if (isCheckServerThreadRunning == false) {
-                    checkServerThread(database, NRIC);              // starts checking every 5 secs if server alive
-                    isCheckServerThreadRunning = true;
-                }
-
-                // paxInput.close();
-                // locaInput.close();
-                //scanner.close();
-                
-            } else if (choose == 3) {
-                /** 
-                 * check out
-                */
-                database.checkOut(NRIC, name, location.toLowerCase());
-            } else if (choose == 4) {
-                /**
-                 * read client data
-                 */
-                database.readUserOnly(NRIC);
-            }
-            //scan.close();
-
-        } catch (MalformedURLException urle) {
-            urle.printStackTrace();
-        } catch (RemoteException re) {
-            System.out.println(re);
+    public void userCheckOut(String NRIC, String name, String location){
+        /** 
+         * check out
+        */
+        try {
+            database.checkOut(NRIC, name, location.toLowerCase());
+        } catch (RemoteException e) {
+            System.out.println(e);
             System.out.println("\nRetrying...\n");
             /**
              * If check out fail due to server failure, will try to invoke remote check out method again
              * until the server comes back alive. Then add the client remote object to server state.
              */
-            if (choose == 3) {
-                try {
-                    String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
-                    Database database = (Database) Naming.lookup(rmi);
-                    database.setRemoteClientState(this, NRIC);
-                } catch (RemoteException e) {
-                    System.out.println("\nretry failed, please check out again\n");
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (NotBoundException e) {
-                    e.printStackTrace();
-                }
-                
+            try {
+                String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
+                Database database = (Database) Naming.lookup(rmi);
+                database.setRemoteClientState(this, NRIC);
+            } catch (RemoteException re) {
+                System.out.println("\nretry failed, please check out again\n");
+            } catch (MalformedURLException me) {
+                e.printStackTrace();
+            } catch (NotBoundException ne) {
+                e.printStackTrace();
             }
-
-        } catch (NotBoundException nbe) {
-            nbe.printStackTrace();
+                
         }
     }
 
-    public void runOfficer() {
-        int choose = 0;
+    public void userRead(String NRIC) {
+        /**
+         * read client data
+         */
         try {
-            
-            final String rmi = "rmi://" + HOST + ":" + PORT + "/database";    // server binded to address ending with /database
-            Database database = (Database) Naming.lookup(rmi);          // look for the address of the server
-
-            System.out.println("choose. 1(set location and time of infected), 2(read all entries)");
-            Scanner scan = new Scanner(System.in);          // cant close this as it needs to run constantly in while loop.
-            choose = scan.nextInt();
-
-            if (choose == 1) {
-                /** 
-                 * For officer to update covid location.
-                 */
-
-                System.out.println("Input location: ");
-                Scanner officerInput = new Scanner(System.in);
-                String officerLoc = officerInput.nextLine();
-
-                final String timeExample = LocalDateTime.now().toString();
-                System.out.println("eg: " + timeExample);
-                System.out.println("Input start time (yyy-mm-ddThh:mm:ss): ");
-                String startTme = officerInput.nextLine();
-
-                System.out.println("Input end time (yyy-mm-ddThh:mm:ss): ");
-                String endTime = officerInput.nextLine();
-
-                
-                database.updateInfectedLocation(officerLoc.toLowerCase(), startTme, endTime);
-                System.out.println("completed update");
-            } else if (choose == 2) {
-                /**
-                 * for officer to read all database entries.
-                 */
-                database.readAll(this);
-            }
-
-        } catch (RemoteException re) {
-            re.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (NotBoundException e) {
+            database.readUserOnly(NRIC);
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    public void officerUpdateInfectedLocation(String officerLoc, String startTime, String endTime) {
+        /** 
+         * For officer to update covid location.
+         */
+        try {
+            database.updateInfectedLocation(officerLoc.toLowerCase(), startTime, endTime);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        System.out.println("completed update");
+    }
+    
+    public void officerRead() {
+        /**
+         * for officer to read all database entries.
+         */
+        try {
+            database.readAll(this);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
     /** 
     * Callback functions 
     */
