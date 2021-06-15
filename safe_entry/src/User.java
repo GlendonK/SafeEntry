@@ -50,7 +50,7 @@ public class User {
                     location = scanner.nextLine();
                     
 
-                    System.out.println("Number of people: ");
+                    System.out.println("Number of additional people (exxlude yourself): ");
                     int pax = scanner.nextInt();
 
                     for (int i = 0; i<=pax; i++) {
