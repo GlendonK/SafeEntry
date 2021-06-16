@@ -5,13 +5,16 @@
 
 ### To compile: </br>
 
-javac -classpath ".;<directory to file>\safe\safe_entry\lib\opencsv-5.4.jar;C:\Users\glend\Desktop\safe\safe_entry\lib\commons-lang3-3.12.0.jar" *.java *.java </br>
+javac -classpath ".;<directory to file>\safe\safe_entry\lib\opencsv-5.4.jar;C:\Users\glend\Desktop\safe\safe_entry\lib\commons-lang3-3.12.0.jar" *.java *.java </br> 
+
+or just run the compile.sh file. </br>
 
 ### To run: </br>
 
 java -classpath ".;<directory to file>\safe\safe_entry\lib\opencsv-5.4.jar;C:\Users\glend\Desktop\safe\safe_entry\lib\commons-lang3-3.12.0.jar" *.java Server.java </br>
 java ./User.java </br>
 java ./Officer.java </br>
+java -classpath ".;<directory to file>\safe\safe_entry\lib\opencsv-5.4.jar;C:\Users\glend\Desktop\safe\safe_entry\lib\commons-lang3-3.12.0.jar" *.java Test.java </br>
 
 ### Example compile/run terminal commands: </br>
 
