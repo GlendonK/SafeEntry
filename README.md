@@ -19,3 +19,5 @@ or just run the compile.sh file. </br>
 - java .\Officer.java </br>
 
 - java -classpath ".;..\lib\opencsv-5.4.jar;..\lib\commons-lang3-3.12.0.jar" .\Test.java </br>
+
+### Do make sure the safe_entry_db.csv is empty, remove all entries before running Test.java
