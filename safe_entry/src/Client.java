@@ -13,11 +13,7 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-
 
 /**
  * Client class is to start the user and officer interaction with the system.
@@ -50,13 +46,16 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
 
     }
 
+    /**
+     * check in for individual user.
+     * @param location
+     * @param NRIC
+     * @param name
+     */
     public void userCheckIn(String location, String NRIC, String name) {
-        
         /** 
          * check in 
         */
-        
-
         try {
             database.setRemoteClientState(this, NRIC);        // add client remote object to server state
             database.checkIn(NRIC, name, location);
@@ -70,6 +69,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
     }
 
+    /**
+     * check in for user family.
+     * @param location location is same for all family members.
+     * @param pax number of family member excluding user.
+     * @param NRICList list of user and user family nric. user nric is the first in list.
+     * @param nameList list of user and user family name. user name is the first in list.
+     */
     public void userFamCheckIn(String location, int pax, List<String> NRICList, List<String> nameList ) {
         
         try {
@@ -85,6 +91,13 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
     }
 
+    /**
+     * check out for inidvidual user.
+     * family checkout also use this method.
+     * @param NRIC for family checkout nric is the user's nric.
+     * @param name for family checkout name is the user's name.
+     * @param location 
+     */
     public void userCheckOut(String NRIC, String name, String location){
         /** 
          * check out
@@ -113,6 +126,11 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
     }
 
+    /**
+     * read from database, only entries matching user nric and user's family member.
+     * will trigger a callback. 
+     * @param NRIC
+     */
     public void userRead(String NRIC) {
         /**
          * read client data
@@ -124,6 +142,12 @@ public class Client extends java.rmi.server.UnicastRemoteObject implements Remot
         }
     }
 
+    /**
+     * for officer to set the location and time of possible infection.
+     * @param officerLoc
+     * @param startTime time infected person enter lcoation.
+     * @param endTime time infected person exit location.
+     */
     public void officerUpdateInfectedLocation(String officerLoc, String startTime, String endTime) {
         /** 
          * For officer to update covid location.
