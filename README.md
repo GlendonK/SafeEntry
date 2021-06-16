@@ -1,9 +1,10 @@
 
-### For mac/linux, replace ';' with ':'. </br>
+### For mac/linux, replace ';' with ':'. Replace '\' with '/'</br>
 
 ### cd to /src </br>
 
-- start rmiregistry
+- start rmiregistry (windows)
+- rmiregistry  & (linux)
 
 ### To compile: </br>
 
