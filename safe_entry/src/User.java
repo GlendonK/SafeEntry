@@ -50,7 +50,7 @@ public class User {
                     location = scanner.nextLine();
                     
 
-                    System.out.println("Number of additional people (exxlude yourself): ");
+                    System.out.println("Number of additional people (exlude yourself): ");
                     int pax = scanner.nextInt();
 
                     for (int i = 0; i<=pax; i++) {
@@ -73,7 +73,7 @@ public class User {
                             
                             
                             
-                        } else if (i >0 ) {
+                        } else if (i > 0 ) {
                             /**
                              * check in family members.
                              */
@@ -101,7 +101,7 @@ public class User {
                 
             }
         } catch (RemoteException e) {
-            e.printStackTrace();
+            System.out.println("\nREMOTE EXCEPTION\n");
         }
     }
 }
