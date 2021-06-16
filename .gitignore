@@ -2,6 +2,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudio,intellij,eclipse,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudio,intellij,eclipse,macos,windows
 
+*.class
 ### Eclipse ###
 .metadata
 bin/
