@@ -109,7 +109,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
-                    notifyCheckIn(NRIC, name, location.toLowerCase(), time);
+                    notifyCheckIn(NRIC, NRIC, name, location.toLowerCase(), time);
                     return;
 
                 } catch (IOException e) {
@@ -175,7 +175,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                         System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
                         System.out.println("NAME!: "+familyList.get(i)[1]);
                         
-                        notifyCheckIn(familyList.get(0)[0], familyList.get(i)[1], location.toLowerCase(), time);
+                        notifyCheckIn(familyList.get(0)[0], familyList.get(i)[0], familyList.get(i)[1], location.toLowerCase(), time);
                     }
 
                 } catch (InterruptedException e) {
@@ -505,9 +505,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      * @param time String time of check in.'yyyy-MM-dd'T'HH:mm:ss' format.
      * @throws RemoteException
      */
-    private void notifyCheckIn(String NRIC, String name, String location, String time) {
+    private void notifyCheckIn(String NRICKey, String NRIC, String name, String location, String time) {
         try {
-            SafeEntryDatabase.clientRemoteObjState.get(NRIC).confirmCheckIn(NRIC, name, location, time);
+            SafeEntryDatabase.clientRemoteObjState.get(NRICKey).confirmCheckIn(NRIC, name, location, time);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
