@@ -30,10 +30,10 @@ public class Officer {
 
                     final String timeExample = LocalDateTime.now().toString();
                     System.out.println("eg: " + timeExample);
-                    System.out.println("Input start time (yyy-mm-ddThh:mm:ss): ");
+                    System.out.println("Input start time (yyyy-mm-ddThh:mm:ss): ");
                     String startTime = officerInput.nextLine();
 
-                    System.out.println("Input end time (yyy-mm-ddThh:mm:ss): ");
+                    System.out.println("Input end time (yyyy-mm-ddThh:mm:ss): ");
                     String endTime = officerInput.nextLine();
                     
                     officer.officerUpdateInfectedLocation(officerLoc, startTime, endTime);
