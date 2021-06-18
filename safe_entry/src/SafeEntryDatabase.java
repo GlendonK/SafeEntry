@@ -70,12 +70,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     mutex.acquire();        // only threads holding the semaphore can write to database.
-                    System.out.println("mutex aquired");
+                    //System.out.println("mutex aquired");
                     
-                    System.out.println("Checking In " + NRIC + " " + name + " at " + location);
+                    //System.out.println("Checking In " + NRIC + " " + name + " at " + location);
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
-                    System.out.println(Thread.currentThread().getName());
+                    //System.out.println(Thread.currentThread().getName());
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
@@ -139,11 +139,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     mutex.acquire();        // only threads holding the semaphore can write to database.
-                    System.out.println("mutex aquired");
+                    //System.out.println("mutex aquired");
                     
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
-                    System.out.println(Thread.currentThread().getName());
+                    //System.out.println(Thread.currentThread().getName());
 
                     for (int i = 0; i<familyList.size(); i++) {
                         writer.writeNext(familyList.get(i));    // write the data to the next line   
@@ -152,8 +152,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     /** callback to confirm the check in */
                     for (int i = 0; i<familyList.size(); i++) {
-                        System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
-                        System.out.println("NAME!: "+familyList.get(i)[1]);
+                        //System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
+                        //System.out.println("NAME!: "+familyList.get(i)[1]);
                         
                         notifyCheckIn(familyList.get(0)[0], familyList.get(i)[0], familyList.get(i)[1], location.toLowerCase(), time);
 
@@ -161,7 +161,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                         long processTime = endTime - startTime;
 
-                        System.out.println("Check in: " + processTime + " ms");
+                        System.out.println("Family Check in: " + processTime + " ms");
                     }
 
                 } catch (InterruptedException e) {
@@ -208,7 +208,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     mutex.acquire();
 
-                    System.out.println("Checking Out");
+                    //System.out.println("Checking Out");
 
                     FileReader fileReader = new FileReader(CSV_PATH);
 
@@ -222,10 +222,10 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                      * check if NRIC, name and location then write the check out time.
                      */
                     for (String[] row : allData) {
-                            System.out.println(NRIC);
-                                System.out.println(name);
+                            //System.out.println(NRIC);
+                                //System.out.println(name);
                                 if (row[4].equals(location)) {
-                                    System.out.println(location);
+                                    //System.out.println(location);
                                     if (row[6].equals(NRIC)) {      // checks the person NRIC who checks in for him/her.
                                         if (row[3].equals("") || row[3].equals(null)) {
                                             row[3] = LocalDateTime.now().toString();
@@ -242,9 +242,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                                             System.out.println("Check out: " + processTime + " ms");
 
-                                            System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
-                                                    + " at " + row[3]);
-                                            System.out.println(Thread.currentThread().getName());
+                                            //System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
+                                            //        + " at " + row[3]);
+                                            //System.out.println(Thread.currentThread().getName());
     
                                         }
                                     } 
@@ -311,9 +311,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     if (allData.size() > 0) {
 
                         for (String[] row : allData) {
-                            // System.out.println(row[4]+" .....");
                             if (row[4].toString().contains(location.toLowerCase())) {
-                                // System.out.println(row[4]);
                                 long infectedCheckIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(checkInTime)
                                         .getTime();
                                 long infectedCheckout = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
@@ -322,7 +320,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                 long checkOut = 0;
 
                                 if (!row[3].isEmpty()) {
-                                    // System.out.println("THE CHECK OUT TIME: "+row[3].toString());
                                     checkOut = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(row[3]).getTime();
                                 }
 
@@ -335,8 +332,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                     writer.flush();
                                     writer.close();
 
-                                    System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4]
-                                            + " from " + row[2] + " to " + row[3]);
+                                    // System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4]
+                                    //         + " from " + row[2] + " to " + row[3]);
 
                                     // ** callback here */
                                     notifyClient(row[6], row[0], location.toLowerCase(), checkInTime, checkOutTime);
@@ -399,9 +396,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     List<String[]> databaseEntries = new ArrayList<>();
 
                     for (String[] col : allData) {
-
-                        // System.out.println(
-                        //         col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
 
                         String[] row = {col[0], col[1], col[2], col[3], col[4], col[5]};
 
