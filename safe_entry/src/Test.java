@@ -47,7 +47,7 @@ public class Test {
     private static List<Long> timeList = new ArrayList<Long>();
 
     public Test() throws RemoteException, InterruptedException {
-        //server = new Server();      // initialise a server
+        server = new Server();      // initialise a server
 
         /**
          * 2 list of clients executing concurrently on 2 different threads.

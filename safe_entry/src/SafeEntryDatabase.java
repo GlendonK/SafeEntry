@@ -70,12 +70,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     mutex.acquire();        // only threads holding the semaphore can write to database.
-                    //System.out.println("mutex aquired");
+                    System.out.println("mutex aquired");
                     
-                    //System.out.println("Checking In " + NRIC + " " + name + " at " + location);
+                    System.out.println("Checking In " + NRIC + " " + name + " at " + location);
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
-                    //System.out.println(Thread.currentThread().getName());
+                    System.out.println(Thread.currentThread().getName());
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
@@ -139,11 +139,11 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
             public void run() {
                 try {
                     mutex.acquire();        // only threads holding the semaphore can write to database.
-                    //System.out.println("mutex aquired");
+                    System.out.println("mutex aquired");
                     
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
-                    //System.out.println(Thread.currentThread().getName());
+                    System.out.println(Thread.currentThread().getName());
 
                     for (int i = 0; i<familyList.size(); i++) {
                         writer.writeNext(familyList.get(i));    // write the data to the next line   
@@ -152,8 +152,6 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     /** callback to confirm the check in */
                     for (int i = 0; i<familyList.size(); i++) {
-                        //System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
-                        //System.out.println("NAME!: "+familyList.get(i)[1]);
                         
                         notifyCheckIn(familyList.get(0)[0], familyList.get(i)[0], familyList.get(i)[1], location.toLowerCase(), time);
 
@@ -208,7 +206,7 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     mutex.acquire();
 
-                    //System.out.println("Checking Out");
+                    System.out.println("Checking Out");
 
                     FileReader fileReader = new FileReader(CSV_PATH);
 
@@ -235,16 +233,16 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             writer.flush();
                                             writer.close();
                                             notifyCheckOut(NRIC, row[0], row[1], location, row[3]);
-
+                                            
                                             long endTime = System.currentTimeMillis();
 
                                             long processTime = endTime - startTime;
 
                                             System.out.println("Check out: " + processTime + " ms");
 
-                                            //System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
-                                            //        + " at " + row[3]);
-                                            //System.out.println(Thread.currentThread().getName());
+                                            System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
+                                                    + " at " + row[3]);
+                                            System.out.println(Thread.currentThread().getName());
     
                                         }
                                     } 
@@ -332,8 +330,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                     writer.flush();
                                     writer.close();
 
-                                    // System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4]
-                                    //         + " from " + row[2] + " to " + row[3]);
+                                    System.out.println("Affected User: " + row[0] + " " + row[1] + " at " + row[4]
+                                            + " from " + row[2] + " to " + row[3]);
 
                                     // ** callback here */
                                     notifyClient(row[6], row[0], location.toLowerCase(), checkInTime, checkOutTime);
@@ -438,8 +436,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     for (String[] col : allData) {
 
-                        // System.out.println(
-                        //         col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
+                        System.out.println(
+                                col[0] + ", " + col[1] + ", " + col[2] + ", " + col[3] + ", " + col[4] + ", " + col[5]);
 
                         if (col[6].equals(NRIC)) {
                             String[] row = {col[0], col[1], col[2], col[3], col[4], col[5]};
