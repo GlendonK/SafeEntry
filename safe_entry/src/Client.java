@@ -22,7 +22,7 @@ import java.util.List;
 public class Client extends java.rmi.server.UnicastRemoteObject implements RemoteClientInterface {
 
     final private int PORT = 1099;                 // port used for rmi
-    final private String HOST = "localhost";       // network address of server
+    final private String HOST = "192.168.43.79";       // network address of server
     private boolean isAlive = false;
     private boolean isCheckServerThreadRunning = false;
 

@@ -58,32 +58,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
     @Override
     public void checkIn(String NRIC, String name, String location) {
 
+        long startTime = System.currentTimeMillis();
+
         final String time = LocalDateTime.now().toString();
-
-        /**
-         * code to get the ip of client.
-         * code to get the remote object reference
-         */
-        // String clientObj;
-        // Remote remote;
-
-        // try {
-        //     clientObj = RemoteServer.getClientHost();
-        //     remote = Naming.lookup("//localhost/database");
-            
-        // } catch (ServerNotActiveException e1) {
-        //     e1.printStackTrace();
-        //     clientObj="";
-        // } catch (MalformedURLException e) {
-        //     clientObj="";
-        //     e.printStackTrace();
-        // } catch (RemoteException e) {
-        //     clientObj="";
-        //     e.printStackTrace();
-        // } catch (NotBoundException e) {
-        //     clientObj="";
-        //     e.printStackTrace();
-        // }
 
         final String line1[] = { NRIC, name, time, "", location.toLowerCase(), "not infected", NRIC };      // default everyone is not infected.
 
@@ -99,17 +76,17 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     CSVWriter writer = new CSVWriter(
                             new FileWriter(CSV_PATH, true));
                     System.out.println(Thread.currentThread().getName());
-                    
-
-                    /* test semaphore */
-                    // for (int i = 0; i < 10; i++) {
-                    //     writer.writeNext(line1);
-                    //     Thread.sleep(1000);
-                    // }
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
                     notifyCheckIn(NRIC, NRIC, name, location.toLowerCase(), time);
+
+                    long endTime = System.currentTimeMillis();
+
+                    long processTime = endTime - startTime;
+
+                    System.out.println("Check in: " + processTime + " ms");
+
                     return;
 
                 } catch (IOException e) {
@@ -145,6 +122,9 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
      */
     @Override
     public void familyCheckIn(List<String> NRICList, List<String> name, String location) throws RemoteException {
+
+        long startTime = System.currentTimeMillis();
+
         final String time = LocalDateTime.now().toString();
 
         List<String[]> familyList = new ArrayList<>();
@@ -176,6 +156,12 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                         System.out.println("NAME!: "+familyList.get(i)[1]);
                         
                         notifyCheckIn(familyList.get(0)[0], familyList.get(i)[0], familyList.get(i)[1], location.toLowerCase(), time);
+
+                        long endTime = System.currentTimeMillis();
+
+                        long processTime = endTime - startTime;
+
+                        System.out.println("Check in: " + processTime + " ms");
                     }
 
                 } catch (InterruptedException e) {
@@ -214,6 +200,8 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
         Thread thread = new Thread(new Runnable() {
 
+            long startTime = System.currentTimeMillis();
+
             @Override
             public void run() {
                 try {
@@ -247,6 +235,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             writer.flush();
                                             writer.close();
                                             notifyCheckOut(NRIC, row[0], row[1], location, row[3]);
+
+                                            long endTime = System.currentTimeMillis();
+
+                                            long processTime = endTime - startTime;
+
+                                            System.out.println("Check out: " + processTime + " ms");
+
                                             System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
                                                     + " at " + row[3]);
                                             System.out.println(Thread.currentThread().getName());

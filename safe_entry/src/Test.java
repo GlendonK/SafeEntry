@@ -44,8 +44,10 @@ public class Test {
 
     private static Server server;
 
+    private static List<Long> timeList = new ArrayList<Long>();
+
     public Test() throws RemoteException, InterruptedException {
-        server = new Server();      // initialise a server
+        //server = new Server();      // initialise a server
 
         /**
          * 2 list of clients executing concurrently on 2 different threads.
@@ -69,7 +71,13 @@ public class Test {
             @Override
             public void run() {
                 for (int i = 0; i < 5; i++) {
+                    long startTime = System.currentTimeMillis();
                     clientList1.get(i).userCheckIn(testLocations1[i], testNRIC1[i], testNames1[i]);
+
+                    long endTime = System.currentTimeMillis();
+                    long processTime = endTime - startTime;
+                    System.out.println("\nCheck in time: " + processTime + "\n");
+                    timeList.add(processTime);
                 }   
             }
         });
@@ -80,7 +88,14 @@ public class Test {
             @Override
             public void run() {
                 for (int i =0; i < 5; i++) {
+                    long startTime = System.currentTimeMillis();
+
                     clientList2.get(i).userCheckIn(testLocations2[i], testNRIC2[i], testNames2[i]);
+
+                    long endTime = System.currentTimeMillis();
+                    long processTime = endTime - startTime;
+                    System.out.println("\nCheck in time: " + processTime + "\n");
+                    timeList.add(processTime);
                 }
             }
             
@@ -98,8 +113,17 @@ public class Test {
 
             @Override
             public void run() {
+                
+
                 for (int i = 0; i < 5; i++) {
+                    long startTime = System.currentTimeMillis();
+
                     clientList1.get(i).userCheckOut(testNRIC1[i], testNames1[i], testLocations1[i]);
+
+                    long endTime = System.currentTimeMillis();
+                    long processTime = endTime - startTime;
+                    System.out.println("\nCheck out time: " + processTime + "\n");
+                    timeList.add(processTime);
                 }   
             }
         });
@@ -110,7 +134,14 @@ public class Test {
             @Override
             public void run() {
                 for (int i =0; i < 5; i++) {
+                    long startTime = System.currentTimeMillis();
+
                     clientList2.get(i).userCheckOut(testNRIC2[i], testNames2[i], testLocations2[i]);
+
+                    long endTime = System.currentTimeMillis();
+                    long processTime = endTime - startTime;
+                    System.out.println("\nCheck out time: " + processTime + "\n");
+                    timeList.add(processTime);
                 }   
             }
         });
@@ -163,8 +194,15 @@ public class Test {
 
             @Override
             public void run() {
+
+                long startTime = System.currentTimeMillis();
                 
                 famClientList.get(0).userFamCheckIn(testLocations1[0], famNRIC1.length, famNRICList1, famNameList1);
+
+                long endTime = System.currentTimeMillis();
+                long processTime = endTime - startTime;
+                System.out.println("\nFamily Check in time: " + processTime + "\n");
+                timeList.add(processTime);
             }
             
         });
@@ -174,7 +212,15 @@ public class Test {
 
             @Override
             public void run() {
+
+                long startTime = System.currentTimeMillis();
+
                 famClientList.get(1).userFamCheckIn(testLocations1[1], famNRIC2.length, famNRICList2, famNameList2);
+
+                long endTime = System.currentTimeMillis();
+                long processTime = endTime - startTime;
+                System.out.println("\nFamily Check in time: " + processTime + "\n");
+                timeList.add(processTime);
                 
             }
             
@@ -192,7 +238,15 @@ public class Test {
 
             @Override
             public void run() {
+
+                long startTime = System.currentTimeMillis();
+
                 famClientList.get(0).userCheckOut(famNRICList1.get(0), famNameList1.get(0), testLocations1[0]);
+
+                long endTime = System.currentTimeMillis();
+                long processTime = endTime - startTime;
+                System.out.println("\nFamily Check out time: " + processTime + "\n");
+                timeList.add(processTime);
                 
             }
             
@@ -203,7 +257,15 @@ public class Test {
 
             @Override
             public void run() {
+
+                long startTime = System.currentTimeMillis();
+
                 famClientList.get(1).userCheckOut(famNRICList2.get(0), famNameList2.get(0), testLocations1[1]);
+
+                long endTime = System.currentTimeMillis();
+                long processTime = endTime - startTime;
+                System.out.println("\nFamily Check out time: " + processTime + "\n");
+                timeList.add(processTime);
                 
             }
             
@@ -229,6 +291,21 @@ public class Test {
          * @test: read all entries of database.
          */
         officer.officerRead();
+
+        Thread.sleep(1000);
+        System.out.println("\n");
+
+        for (int i = 0; i < timeList.size(); i++) {
+            if (i < 10) {
+                System.out.println("Check in time: " + timeList.get(i) + " ms");
+            } else if (i >= 10 && i < 20) {
+                System.out.println("Check out time: " + timeList.get(i) + " ms");
+            } else if (i >= 20 && i < 22) {
+                System.out.println("Family Check in time: " + timeList.get(i) + " ms");   
+            } else {
+                System.out.println("Family Check out time: " + timeList.get(i) + " ms");  
+            }
+        }
 
     }
     
