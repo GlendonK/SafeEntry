@@ -66,6 +66,9 @@ public class Test {
          * theads 1 and 2 runs individual user check in of 5 users each.
          * @test: check in is working, thread execute properly, mutex is mainatined, callback confirm message works.
          */
+        System.out.println("\n============================================\n");
+        System.out.println("\nCheck In\n");
+        System.out.println("\n============================================\n");
         Thread thread1 = new Thread(new Runnable(){
 
             @Override
@@ -109,6 +112,9 @@ public class Test {
          * thread 3 and 4 runs individual client check out of 5 clients each.
          * @test: check out works, callback confirm message works, threads execute properly, mutex is maintained. 
          */
+        System.out.println("\n============================================\n");
+        System.out.println("\nCheck Out\n");
+        System.out.println("\n============================================\n");
         Thread thread3 = new Thread(new Runnable(){
 
             @Override
@@ -150,16 +156,30 @@ public class Test {
         thread3.join();
         thread4.join();
 
+        
+        System.out.println("\n============================================\n");
+        System.out.println("\nUser Read \n");
+        System.out.println("\n============================================\n");
+
         /**
          * user read check in history from database.
          * only retrieve his own check in and family check in through callback.
          * @test: callback give user only infomation related to user and user family.
          */
-        for (int i = 0; i < famNRIC1.length; i++) {
-            clientList1.get(i).userRead(testNRIC1[i]);
-            clientList1.get(i).userRead(testNRIC1[i]);
-        }
+        Thread readThread = new Thread(new Runnable(){
 
+            @Override
+            public void run() {
+                for (int i = 0; i < clientList1.size(); i++) {
+                    clientList1.get(i).userRead(testNRIC1[i]);
+                    clientList2.get(i).userRead(testNRIC2[i]);
+                }   
+            }
+        });
+        readThread.start();
+        readThread.join();
+        
+        Thread.sleep(100);
         /**
          * family check in and out.
          * 2 families check in and out on 2 concurrent threads.
@@ -190,6 +210,9 @@ public class Test {
          * thread 5 and 6 runs family check in concurrently.
          * @test: family check in is working, thread execute properly, mutext is maintained, callback confirm message works.
          */
+        System.out.println("\n============================================\n");
+        System.out.println("\nFamily Check In\n");
+        System.out.println("\n============================================\n");
         Thread thread5 = new Thread(new Runnable(){
 
             @Override
@@ -234,6 +257,9 @@ public class Test {
          * thread 7 and 8 runs family check out concurrently.
          * @test: family check out working, thread execute properly, mutex is maintained, callback confirm message works. 
          */
+        System.out.println("\n============================================\n");
+        System.out.println("\nFamily Check Out\n");
+        System.out.println("\n============================================\n");
         Thread thread7 = new Thread(new Runnable(){
 
             @Override
@@ -275,9 +301,33 @@ public class Test {
         thread7.join();
         thread8.join();
 
+        Thread.sleep(100);
+
+        /**
+         * family read test
+         */
+        System.out.println("\n============================================\n");
+        System.out.println("\nFmaily Read \n");
+        System.out.println("\n============================================\n");
+        Thread threadFamRead = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                famClientList.get(0).userRead(famNRICList1.get(0));
+                famClientList.get(1).userRead(famNRICList2.get(0));
+            }
+            
+        });
+        threadFamRead.start();
+        threadFamRead.join();
+
+        Thread.sleep(100);
         /**
          * MOH officer.
          */
+        System.out.println("\n============================================\n");
+        System.out.println("\nOfficer\n");
+        System.out.println("\n============================================\n");
         Client officer = new Client();
         /**
          * update the infected locations. Clients who been to the location at the time frame
