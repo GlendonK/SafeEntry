@@ -79,14 +79,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
 
                     writer.writeNext(line1);    // write the data to the next line
                     writer.close();
+                    notifyCheckIn(NRIC, NRIC, name, location.toLowerCase(), time);
 
                     long endTime = System.currentTimeMillis();
 
                     long processTime = endTime - startTime;
 
                     System.out.println("Check in: " + processTime + " ms");
-
-                    notifyCheckIn(NRIC, NRIC, name, location.toLowerCase(), time);
 
                     return;
 
@@ -151,19 +150,18 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                     }
                     writer.close();
 
-                    long endTime = System.currentTimeMillis();
-
-                    long processTime = endTime - startTime;
-
-                    System.out.println("Family Check in: " + processTime + " ms");
-
                     /** callback to confirm the check in */
                     for (int i = 0; i<familyList.size(); i++) {
                         //System.out.println("NRIC!: "+i+" "+familyList.get(i)[0]);
                         //System.out.println("NAME!: "+familyList.get(i)[1]);
                         
                         notifyCheckIn(familyList.get(0)[0], familyList.get(i)[0], familyList.get(i)[1], location.toLowerCase(), time);
-                        
+
+                        long endTime = System.currentTimeMillis();
+
+                        long processTime = endTime - startTime;
+
+                        System.out.println("Family Check in: " + processTime + " ms");
                     }
 
                 } catch (InterruptedException e) {
@@ -236,15 +234,13 @@ public class SafeEntryDatabase extends java.rmi.server.UnicastRemoteObject imple
                                             writer.writeAll(allData);
                                             writer.flush();
                                             writer.close();
+                                            notifyCheckOut(NRIC, row[0], row[1], location, row[3]);
 
                                             long endTime = System.currentTimeMillis();
 
                                             long processTime = endTime - startTime;
 
                                             System.out.println("Check out: " + processTime + " ms");
-
-                                            
-                                            notifyCheckOut(NRIC, row[0], row[1], location, row[3]);
 
                                             //System.out.println("Checked out" + row[0] + " " + row[1] + " at " + location
                                             //        + " at " + row[3]);
